@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Home,
 } from "lucide-react";
+import { useCart } from "../../../components/Cart/CartContext";
+import toast from "react-hot-toast";
 
 // Sample product data - Replace with your actual data fetching
 const product = {
@@ -91,6 +93,19 @@ const HeartIcon = () => (
 export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      image: product.images[0],
+      mrp: product.mrp,
+      price: product.price,
+      perUnit: product.perUnit
+    }, quantity);
+    toast.success(`${quantity} ${product.name} added to cart!`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -217,7 +232,10 @@ export default function ProductDetail() {
                     +
                   </button>
                 </div>
-                <button className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200">
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                >
                   Add to Cart
                 </button>
                 <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50">

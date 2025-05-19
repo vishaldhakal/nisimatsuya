@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ProductsList2 from "@/components/ProductsList2";
+import ProductsList2 from "../../../components/ProductsList2";
 import { Search, Filter, X } from "lucide-react";
 
 export default function ProductsPage() {

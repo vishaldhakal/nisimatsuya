@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import SectionHeader from "./SectionHeader";
 import Link from "next/link";
+import { useCart } from "../components/Cart/CartContext";
+import toast from "react-hot-toast";
 
 const products = [
   {
@@ -55,22 +59,33 @@ const HeartIcon = () => (
 );
 
 const ProductsList = () => {
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (product) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      image: product.image,
+      mrp: product.mrp,
+      price: product.price,
+      perUnit: product.perUnit
+    }, 1);
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
     <div className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader title="Most Loved Products" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
-            <Link
-              href={`/products/${product.id}`}
+            <div
               key={product.id}
               className="relative bg-white rounded-2xl shadow-lg flex flex-col items-center p-6 pt-8 transition-transform duration-200 hover:-translate-y-1"
             >
-              {/* Heart Icon */}
               <button className="absolute top-4 left-4 bg-white rounded-full p-1 shadow hover:shadow-md">
                 <HeartIcon />
               </button>
-              {/* Product Image */}
               <div className="flex justify-center items-center mb-4 h-40 w-full">
                 <Image
                   src={product.image}
@@ -80,11 +95,9 @@ const ProductsList = () => {
                   className="object-contain h-36 w-auto mx-auto"
                 />
               </div>
-              {/* Product Name */}
               <h3 className="text-lg font-bold text-center text-gray-800 mb-2 min-h-[48px] flex items-center justify-center">
                 {product.name}
               </h3>
-              {/* Price Section */}
               <div className="text-center mb-4">
                 <span className="text-xs text-gray-400 font-semibold mr-1">
                   M.R.P.:
@@ -101,11 +114,13 @@ const ProductsList = () => {
                   </span>
                 )}
               </div>
-              {/* Add to Cart Button */}
-              <button className="mt-auto w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200">
+              <button 
+                onClick={() => handleAddToCart(product)}
+                className="mt-auto w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+              >
                 Add to Cart
               </button>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
