@@ -188,18 +188,36 @@ export default function CheckoutPage() {
     if (!validateForm()) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     setIsSubmitting(true);
 
-    // Save order summary before clearing cart
-    const summary = {
-      totalAmount: totalAmount.toLocaleString(),
+    // Build order object for localStorage
+    const orderObj = {
+      id: Date.now(),
+      orderNumber: "ORD" + Math.floor(100000 + Math.random() * 900000),
+      customerName: formData.fullName,
+      customerEmail: formData.email,
+      customerPhone: formData.phone,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      paymentMethod: formData.paymentMethod,
+      date: new Date().toISOString(),
+      totalAmount: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
       tax: calculateTax(),
       shipping: calculateShipping(),
       total: calculateTotal(),
-      paymentMethod: formData.paymentMethod,
+      status: "pending",
+      items: cartItems,
     };
-    setOrderSummary(summary);
+
+    // Save order to localStorage
+    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+    localStorage.setItem("orders", JSON.stringify([...storedOrders, orderObj]));
+
+    // Save order summary for UI
+    setOrderSummary(orderObj);
 
     setTimeout(() => {
-      setOrderNumber("ORD" + Math.floor(100000 + Math.random() * 900000));
+      setOrderNumber(orderObj.orderNumber);
       clearCart();
       setOrderComplete(true);
       setIsSubmitting(false);

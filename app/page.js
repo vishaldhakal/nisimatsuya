@@ -5,10 +5,11 @@ import Testimonials from "../components/Testimonials";
 import Newsletter from "../components/Newsletter";
 import ProductsList from "../components/ProductsList";
 import ContactSection from "../components/ContactSection";
-
+  import { Suspense } from "react";
 export default function Home() {
   return (
-    <div className="flex flex-col gap-0">
+    <Suspense>
+      <div className="flex flex-col gap-0">
       <HeroSection />
       <BestSellers />
       <CategorySection />
@@ -16,5 +17,6 @@ export default function Home() {
       <Testimonials />
       <ContactSection />
     </div>
+    </Suspense>
   );
 }

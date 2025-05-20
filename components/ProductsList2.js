@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "../components/Cart/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 
-const products = [
+
+const defaultProducts = [
   {
     id: 9,
     name: "Gentle Body Wash And Shampoo (500ml)",
@@ -49,15 +50,39 @@ const products = [
   },
 ];
 
-const ProductsList2 = ({ searchQuery = "", category = "all", priceRange = { min: 0, max: 50000 }, sortBy = "featured" }) => {
+const ProductsList2 = ({
+  searchQuery = "",
+  category = "all",
+  priceRange = { min: 0, max: 50000 },
+  sortBy = "featured"
+}) => {
   const { addToCart, totalItems } = useCart();
   const [addedItems, setAddedItems] = useState({});
+  const [allProducts, setAllProducts] = useState(defaultProducts);
 
-  // Filter products based on search, category and price range
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = category === "all" || product.category === category;
-    const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+
+  useEffect(() => {
+    const storedProducts = JSON.parse(localStorage.getItem("products") || "[]");
+   
+    const merged = [
+      ...storedProducts,
+      ...defaultProducts.filter(
+        def => !storedProducts.some(prod => prod.id === def.id)
+      ),
+    ];
+    setAllProducts(merged);
+  }, []);
+
+
+  const filteredProducts = allProducts.filter(product => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      category === "all" ||
+      (product.category && product.category === category);
+    const matchesPrice =
+      product.price >= priceRange.min && product.price <= priceRange.max;
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
@@ -87,7 +112,12 @@ const ProductsList2 = ({ searchQuery = "", category = "all", priceRange = { min:
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={() => handleAddToCart(product)}
+              added={!!addedItems[product.id]}
+            />
           ))}
         </div>
       </div>
