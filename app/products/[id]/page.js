@@ -12,9 +12,8 @@ import {
   Home,
 } from "lucide-react";
 import { useCart } from "../../../components/Cart/CartContext";
-import toast from "react-hot-toast";
 
-// Sample product data - Replace with your actual data fetching
+// Sample product data
 const product = {
   id: 1,
   name: "Gentle Body Wash And Shampoo (500ml)",
@@ -22,8 +21,7 @@ const product = {
   mrp: 679.0,
   price: 597.52,
   perUnit: "₹1.20/ml",
-  description:
-    "Gentle and nourishing body wash and shampoo specially formulated for babies. Made with natural ingredients, this 2-in-1 product cleanses and moisturizes your baby's delicate skin and hair.",
+  description: "Gentle and nourishing body wash and shampoo specially formulated for babies.",
   images: [
     "/products/1.jpg",
     "/products/2.jpg",
@@ -34,44 +32,13 @@ const product = {
     "Hypoallergenic formula",
     "No harmful chemicals",
     "Suitable for daily use",
-    "Tear-free formula",
-    "Natural ingredients",
   ],
   specifications: {
     "Product Type": "Body Wash & Shampoo",
     Volume: "500ml",
     "Age Group": "0+ months",
-    "Skin Type": "All skin types",
-    "Country of Origin": "India",
   },
 };
-
-const relatedProducts = [
-  {
-    id: 2,
-    name: "Baby Body Lotion (500ml)",
-    mrp: 679.0,
-    price: 577.15,
-    perUnit: "₹1.15/ml",
-    image: "/products/3.jpeg",
-  },
-  {
-    id: 3,
-    name: "Baby Shampoo (300ml)",
-    mrp: 499.0,
-    price: 449.0,
-    perUnit: "₹1.50/ml",
-    image: "/products/3.jpeg",
-  },
-  {
-    id: 4,
-    name: "Baby Oil (200ml)",
-    mrp: 399.0,
-    price: 359.0,
-    perUnit: "₹1.80/ml",
-    image: "/products/3.jpeg",
-  },
-];
 
 const HeartIcon = () => (
   <svg
@@ -93,7 +60,8 @@ const HeartIcon = () => (
 export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart, totalItems } = useCart();
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
 
   const handleAddToCart = () => {
     addToCart({
@@ -104,37 +72,26 @@ export default function ProductDetail() {
       price: product.price,
       perUnit: product.perUnit
     }, quantity);
-    toast.success(`${quantity} ${product.name} added to cart!`);
+    setIsAddedToCart(true);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
         <nav className="mb-8">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
-              <Link
-                href="/"
-                className="text-gray-500 hover:text-gray-700 flex items-center"
-              >
+              <Link href="/" className="text-gray-500 hover:text-gray-700 flex items-center">
                 <Home className="w-4 h-4" />
               </Link>
             </li>
+            <li><ChevronRight className="w-4 h-4 text-gray-400" /></li>
             <li>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </li>
-            <li>
-              <Link
-                href="/products"
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <Link href="/products" className="text-gray-500 hover:text-gray-700">
                 Products
               </Link>
             </li>
-            <li>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </li>
+            <li><ChevronRight className="w-4 h-4 text-gray-400" /></li>
             <li className="text-gray-900 font-medium">{product.name}</li>
           </ol>
         </nav>
@@ -176,26 +133,16 @@ export default function ProductDetail() {
             {/* Product Info */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {product.name}
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
                 <p className="text-sm text-gray-500 mt-1">{product.category}</p>
               </div>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-xs text-gray-400 font-semibold">
-                  M.R.P.:
-                </span>
-                <span className="text-sm text-gray-400 line-through">
-                  ₹{product.mrp.toLocaleString()}
-                </span>
-                <span className="text-2xl font-bold text-gray-900">
-                  ₹{product.price.toLocaleString()}
-                </span>
+                <span className="text-xs text-gray-400 font-semibold">M.R.P.:</span>
+                <span className="text-sm text-gray-400 line-through">₹{product.mrp.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
                 {product.perUnit && (
-                  <span className="text-sm text-gray-400">
-                    ({product.perUnit})
-                  </span>
+                  <span className="text-sm text-gray-400">({product.perUnit})</span>
                 )}
               </div>
 
@@ -205,10 +152,7 @@ export default function ProductDetail() {
                 <h3 className="font-semibold text-gray-900">Key Features:</h3>
                 <ul className="space-y-2">
                   {product.features.map((feature, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center gap-2 text-gray-600"
-                    >
+                    <li key={index} className="flex items-center gap-2 text-gray-600">
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
                       {feature}
                     </li>
@@ -246,6 +190,20 @@ export default function ProductDetail() {
                 </button>
               </div>
 
+              {isAddedToCart && (
+                <div className="mt-4 p-4 bg-pink-50 rounded-lg flex justify-between items-center">
+                  <p className="text-pink-700">
+                    {quantity} {product.name} added to your cart
+                  </p>
+                  <Link 
+                    href="/cart" 
+                    className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                  >
+                    Proceed to Checkout ({totalItems})
+                  </Link>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-6 space-y-4">
                 <div className="flex items-center gap-3 text-gray-600">
                   <Truck className="w-5 h-5" />
@@ -265,64 +223,12 @@ export default function ProductDetail() {
 
           {/* Specifications */}
           <div className="mt-12 border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Specifications
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Specifications</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(product.specifications).map(([key, value]) => (
                 <div key={key} className="flex">
                   <span className="w-1/3 text-gray-600">{key}</span>
                   <span className="w-2/3 text-gray-900">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Related Products */}
-          <div className="mt-12 border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              You May Also Like
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="relative bg-white rounded-2xl shadow-lg flex flex-col items-center p-6 pt-8 transition-transform duration-200 hover:-translate-y-1"
-                >
-                  <button className="absolute top-4 left-4 bg-white rounded-full p-1 shadow hover:shadow-md">
-                    <HeartIcon />
-                  </button>
-                  <div className="flex justify-center items-center mb-4 h-40 w-full">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={140}
-                      height={140}
-                      className="object-contain h-36 w-auto mx-auto"
-                    />
-                  </div>
-                  <h3 className="text-lg font-bold text-center text-gray-800 mb-2 min-h-[48px] flex items-center justify-center">
-                    {product.name}
-                  </h3>
-                  <div className="text-center mb-4">
-                    <span className="text-xs text-gray-400 font-semibold mr-1">
-                      M.R.P.:
-                    </span>
-                    <span className="text-sm text-gray-400 line-through mr-2">
-                      ₹{product.mrp.toLocaleString()}
-                    </span>
-                    <span className="text-base text-black font-bold">
-                      ₹{product.price.toLocaleString()}
-                    </span>
-                    {product.perUnit && (
-                      <span className="text-xs text-gray-400 ml-1">
-                        ({product.perUnit})
-                      </span>
-                    )}
-                  </div>
-                  <button className="mt-auto w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200">
-                    Add to Cart
-                  </button>
                 </div>
               ))}
             </div>

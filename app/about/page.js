@@ -17,12 +17,15 @@ import {
   Mail,
   Instagram,
   Facebook,
-  Twitter
+  Twitter,
+  Github,
+  Linkedin,
 } from "lucide-react";
 
 export default function AboutPage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
+  // Core values data - easily modifiable
   const values = [
     {
       icon: <Heart className="w-10 h-10 text-pink-500" />,
@@ -50,27 +53,41 @@ export default function AboutPage() {
     },
   ];
 
+  // Team members data - easily updatable
   const team = [
     {
       name: "Sarah Johnson",
       role: "Founder & CEO",
       bio: "Mother of two, passionate about providing the best for babies.",
-      socialLinks: ["#", "#", "#"]
+      image: "/team/member2.avif",
+      socials: [
+        { icon: <Instagram className="w-5 h-5" />, link: "#" },
+        { icon: <Twitter className="w-5 h-5" />, link: "#" },
+      ],
     },
     {
       name: "Michael Chen",
       role: "Product Director",
       bio: "15+ years of experience in baby product development.",
-      socialLinks: ["#", "#", "#"]
+      image: "/team/member1.avif",
+      socials: [
+        { icon: <Instagram className="w-5 h-5" />, link: "#" },
+        { icon: <Twitter className="w-5 h-5" />, link: "#" },
+      ],
     },
     {
       name: "Emma Davis",
       role: "Customer Care",
       bio: "Dedicated to ensuring every parent has a great shopping experience.",
-      socialLinks: ["#", "#", "#"]
+      image: "/team/member2.avif",
+      socials: [
+        { icon: <Instagram className="w-5 h-5" />, link: "#" },
+        { icon: <Twitter className="w-5 h-5" />, link: "#" },
+      ],
     },
   ];
 
+  // Testimonials data - easily modifiable
   const testimonials = [
     {
       name: "Jessica P.",
@@ -92,6 +109,7 @@ export default function AboutPage() {
     }
   ];
 
+  // Company milestones - easily updatable
   const milestones = [
     { year: "2010", event: "Founded in a small home office" },
     { year: "2013", event: "Opened our first physical store" },
@@ -100,6 +118,94 @@ export default function AboutPage() {
     { year: "2020", event: "Introduced our eco-friendly product range" },
     { year: "2023", event: "Reached 100,000 happy families milestone" }
   ];
+
+  // Contact info - easily updatable
+  const contactInfo = [
+    {
+      icon: <MapPin className="w-6 h-6 text-pink-500" />,
+      title: "Visit Us",
+      details: ["123 Baby Avenue, Suite 101", "New York, NY 10001"]
+    },
+    {
+      icon: <Phone className="w-6 h-6 text-pink-500" />,
+      title: "Call Us",
+      details: ["Customer Support", "(800) 123-4567"]
+    },
+    {
+      icon: <Mail className="w-6 h-6 text-pink-500" />,
+      title: "Email Us",
+      details: ["General Inquiries", "hello@babyshop.com"]
+    }
+  ];
+
+  // Reusable components
+  const SectionHeading = ({ badge, title, description }) => (
+    <div className="text-center mb-16">
+      <span className="px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium inline-block">
+        {badge}
+      </span>
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-4 mb-4">
+        {title}
+      </h2>
+      {description && (
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">{description}</p>
+      )}
+    </div>
+  );
+
+  const TeamMemberCard = ({ member }) => (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+      <div className="relative h-80">
+        <Image
+          src={member.image}
+          alt={member.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+      </div>
+      <div className="p-6 text-center">
+        <h3 className="text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
+        <p className="text-pink-600 font-medium mb-4">{member.role}</p>
+        <p className="text-gray-600 mb-5">{member.bio}</p>
+        <div className="flex justify-center space-x-4">
+          {member.socials.map((social, index) => (
+            <a key={index} href={social.link} className="text-gray-500 hover:text-pink-600 transition-colors duration-300">
+              {social.icon}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const ValueCard = ({ value }) => (
+    <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1">
+      <div className="mb-6 bg-pink-50 p-3 rounded-xl inline-block">{value.icon}</div>
+      <h3 className="text-xl font-semibold text-gray-900 mb-3">
+        {value.title}
+      </h3>
+      <p className="text-gray-600">{value.description}</p>
+    </div>
+  );
+
+  const ContactCard = ({ info }) => (
+    <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center">
+      <div className="bg-pink-100 p-3 rounded-full mb-4">
+        {info.icon}
+      </div>
+      <h3 className="text-lg font-semibold mb-2">{info.title}</h3>
+      <p className="text-gray-600">
+        {info.details.map((detail, i) => (
+          <span key={i}>
+            {detail}
+            {i < info.details.length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,7 +261,7 @@ export default function AboutPage() {
             </div>
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
               <Image
-                src="/api/placeholder/800/600"
+                src="/aboutusimage/happyfamilybabe.webp"
                 alt="Happy family with baby"
                 fill
                 className="object-cover"
@@ -168,28 +274,14 @@ export default function AboutPage() {
       {/* Values Section */}
       <div className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">What We Stand For</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-4 mb-4">
-              Our Core Values
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              These principles guide everything we do, from product selection
-              to customer service and beyond.
-            </p>
-          </div>
+          <SectionHeading 
+            badge="What We Stand For"
+            title="Our Core Values"
+            description="These principles guide everything we do, from product selection to customer service and beyond."
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div
-                key={index}
-                className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1"
-              >
-                <div className="mb-6 bg-pink-50 p-3 rounded-xl inline-block">{value.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {value.title}
-                </h3>
-                <p className="text-gray-600">{value.description}</p>
-              </div>
+              <ValueCard key={index} value={value} />
             ))}
           </div>
         </div>
@@ -201,7 +293,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-xl">
               <Image
-                src="/api/placeholder/800/1000"
+                src="/aboutusimage/ourstory.webp"
                 alt="Our story"
                 fill
                 className="object-cover"
@@ -253,15 +345,11 @@ export default function AboutPage() {
       {/* Testimonials Section */}
       <div className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">What Parents Say</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-4 mb-4">
-              Customer Testimonials
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Don't just take our word for it. Here's what parents who shop with us have to say.
-            </p>
-          </div>
+          <SectionHeading 
+            badge="What Parents Say"
+            title="Customer Testimonials"
+            description="Don't just take our word for it. Here's what parents who shop with us have to say."
+          />
           
           <div className="relative bg-white rounded-2xl shadow-md p-8 md:p-12 mb-12">
             <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white p-3 rounded-full">
@@ -307,48 +395,21 @@ export default function AboutPage() {
       <div className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <span className="px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">Our People</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-4 mb-4">
-              Meet Our Team
+            <span className="inline-block px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium mb-4">
+              Our Team
+            </span>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Meet Our <span className="text-pink-600">Experts</span>
             </h2>
+            <div className="w-20 h-1 bg-pink-500 mx-auto mb-6"></div>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              The passionate people behind our success, dedicated to serving you
-              better every day.
+              The talented professionals who make everything possible.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {team.map((member, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="relative h-72">
-                  <Image
-                    src={`/api/placeholder/600/600?text=${encodeURIComponent(member.name)}`}
-                    alt={member.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {member.name}
-                  </h3>
-                  <p className="text-pink-500 font-medium mb-3">{member.role}</p>
-                  <p className="text-gray-600 mb-4">{member.bio}</p>
-                  <div className="flex space-x-4">
-                    <a href={member.socialLinks[0]} className="text-gray-400 hover:text-pink-500">
-                      <Instagram className="w-5 h-5" />
-                    </a>
-                    <a href={member.socialLinks[1]} className="text-gray-400 hover:text-pink-500">
-                      <Facebook className="w-5 h-5" />
-                    </a>
-                    <a href={member.socialLinks[2]} className="text-gray-400 hover:text-pink-500">
-                      <Twitter className="w-5 h-5" />
-                    </a>
-                  </div>
-                </div>
-              </div>
+              <TeamMemberCard key={index} member={member} />
             ))}
           </div>
         </div>
@@ -358,29 +419,9 @@ export default function AboutPage() {
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center">
-              <div className="bg-pink-100 p-3 rounded-full mb-4">
-                <MapPin className="w-6 h-6 text-pink-500" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
-              <p className="text-gray-600">123 Baby Avenue, Suite 101<br />New York, NY 10001</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center">
-              <div className="bg-pink-100 p-3 rounded-full mb-4">
-                <Phone className="w-6 h-6 text-pink-500" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Call Us</h3>
-              <p className="text-gray-600">Customer Support<br />(800) 123-4567</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center">
-              <div className="bg-pink-100 p-3 rounded-full mb-4">
-                <Mail className="w-6 h-6 text-pink-500" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-600">General Inquiries<br />hello@babyshop.com</p>
-            </div>
+            {contactInfo.map((info, index) => (
+              <ContactCard key={index} info={info} />
+            ))}
           </div>
         </div>
       </div>
@@ -402,10 +443,10 @@ export default function AboutPage() {
             >
               Start Shopping
             </Link>
-            
           </div>
         </div>
       </div>
     </div>
   );
 }
+

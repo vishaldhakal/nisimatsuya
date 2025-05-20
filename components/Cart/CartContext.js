@@ -9,8 +9,10 @@ export function CartProvider({ children }) {
   const [totalItems, setTotalItems] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
-  // Load cart from localStorage when component mounts
+  // Load cart from localStorage on initial render
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
@@ -23,11 +25,12 @@ export function CartProvider({ children }) {
     }
     setIsInitialized(true);
   }, []);
+
+  // Update localStorage and calculate totals whenever cart changes
   useEffect(() => {
     if (!isInitialized) return;
     
     localStorage.setItem('cart', JSON.stringify(cartItems));
-    
     
     const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
     const amount = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -36,24 +39,24 @@ export function CartProvider({ children }) {
     setTotalAmount(amount);
   }, [cartItems, isInitialized]);
 
-
   const addToCart = (product, quantity = 1) => {
     setCartItems(prevItems => {
-    
       const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
       
       if (existingItemIndex !== -1) {
-        
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += quantity;
         return updatedItems;
       } else {
-      
         return [...prevItems, { ...product, quantity }];
       }
     });
-  };
 
+    // Show notification
+    setNotificationMessage(`${quantity} ${product.name} added to cart`);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  };
 
   const updateQuantity = (productId, quantity) => {
     setCartItems(prevItems => 
@@ -65,11 +68,9 @@ export function CartProvider({ children }) {
     );
   };
 
-
   const removeFromCart = (productId) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
   };
-
 
   const clearCart = () => {
     setCartItems([]);
@@ -84,7 +85,9 @@ export function CartProvider({ children }) {
     updateQuantity,
     removeFromCart,
     clearCart,
-    isInitialized
+    isInitialized,
+    showNotification,
+    notificationMessage
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

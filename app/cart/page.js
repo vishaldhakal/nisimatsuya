@@ -34,7 +34,12 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart ({totalItems} items)</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
+          <div className="text-lg font-medium text-gray-600">
+            Total Items: <span className="text-pink-600 font-bold">{totalItems}</span>
+          </div>
+        </div>
         
         <div className="lg:grid lg:grid-cols-12 lg:gap-8">
           {/* Cart Items */}
@@ -141,7 +146,7 @@ export default function CartPage() {
               <div className="p-6">
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-600">Items ({totalItems})</span>
                     <span className="text-gray-900 font-medium">₹{totalAmount.toLocaleString()}</span>
                   </div>
                   
@@ -167,9 +172,12 @@ export default function CartPage() {
                   </div>
                 </div>
                 
-                <button className="w-full mt-6 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200">
+                <Link
+                  href="/checkout"
+                  className="w-full mt-6 flex justify-center bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                >
                   Proceed to Checkout
-                </button>
+                </Link>
                 
                 <div className="mt-6 text-center text-sm text-gray-500">
                   <p>Safe & Secure Payments</p>

@@ -1,6 +1,4 @@
 import React from "react";
-import { Cherry } from "lucide-react";
-
 const ContactSection = () => {
   return (
     <section className="py-16 bg-stone-50 min-h-screen">

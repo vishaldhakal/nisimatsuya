@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "../components/Cart/CartContext";
+import { useState } from "react";
 
 const products = [
   {
@@ -54,13 +58,20 @@ const HeartIcon = () => (
 );
 
 const ProductsList2 = () => {
+  const { addToCart, totalItems } = useCart();
+  const [addedItems, setAddedItems] = useState({});
+
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
+    setAddedItems(prev => ({ ...prev, [product.id]: true }));
+  };
+
   return (
     <div>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
-            <Link
-              href={`/products/${product.id}`}
+            <div
               key={product.id}
               className="relative bg-white rounded-2xl shadow-lg flex flex-col items-center p-6 pt-8 transition-transform duration-200 hover:-translate-y-1"
             >
@@ -68,42 +79,62 @@ const ProductsList2 = () => {
               <button className="absolute top-4 left-4 bg-white rounded-full p-1 shadow hover:shadow-md">
                 <HeartIcon />
               </button>
-              {/* Product Image */}
-              <div className="flex justify-center items-center mb-4 h-40 w-full">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={140}
-                  height={140}
-                  className="object-contain h-36 w-auto mx-auto"
-                />
-              </div>
-              {/* Product Name */}
-              <h3 className="text-lg font-bold text-center text-gray-800 mb-2 min-h-[48px] flex items-center justify-center">
-                {product.name}
-              </h3>
-              {/* Price Section */}
-              <div className="text-center mb-4">
-                <span className="text-xs text-gray-400 font-semibold mr-1">
-                  M.R.P.:
-                </span>
-                <span className="text-sm text-gray-400 line-through mr-2">
-                  ₹{product.mrp.toLocaleString()}
-                </span>
-                <span className="text-base text-black font-bold">
-                  ₹{product.price.toLocaleString()}
-                </span>
-                {product.perUnit && (
-                  <span className="text-xs text-gray-400 ml-1">
-                    ({product.perUnit})
+              
+              {/* Product Link */}
+              <Link href={`/products/${product.id}`} className="w-full">
+                {/* Product Image */}
+                <div className="flex justify-center items-center mb-4 h-40 w-full">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={140}
+                    height={140}
+                    className="object-contain h-36 w-auto mx-auto"
+                  />
+                </div>
+                {/* Product Name */}
+                <h3 className="text-lg font-bold text-center text-gray-800 mb-2 min-h-[48px] flex items-center justify-center">
+                  {product.name}
+                </h3>
+                {/* Price Section */}
+                <div className="text-center mb-4">
+                  <span className="text-xs text-gray-400 font-semibold mr-1">
+                    M.R.P.:
                   </span>
-                )}
-              </div>
+                  <span className="text-sm text-gray-400 line-through mr-2">
+                    ₹{product.mrp.toLocaleString()}
+                  </span>
+                  <span className="text-base text-black font-bold">
+                    ₹{product.price.toLocaleString()}
+                  </span>
+                  {product.perUnit && (
+                    <span className="text-xs text-gray-400 ml-1">
+                      ({product.perUnit})
+                    </span>
+                  )}
+                </div>
+              </Link>
+              
               {/* Add to Cart Button */}
-              <button className="mt-auto w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200">
+              <button 
+                onClick={() => handleAddToCart(product)}
+                className="mt-auto w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+              >
                 Add to Cart
               </button>
-            </Link>
+              
+              {/* Proceed to Checkout Link - Always visible if item is added */}
+              {addedItems[product.id] && (
+                <div className="mt-2 w-full text-center">
+                  <Link 
+                    href="/cart" 
+                    className="text-sm text-pink-600 font-medium hover:underline"
+                  >
+                    Proceed to Checkout ({totalItems})
+                  </Link>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </div>

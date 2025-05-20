@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import SectionHeader from "./SectionHeader";
 import Link from "next/link";
 import { useCart } from "../components/Cart/CartContext";
-import toast from "react-hot-toast";
+import { useState } from "react";
 
 const products = [
   {
@@ -17,14 +16,6 @@ const products = [
   },
   {
     id: 2,
-    name: "Bravo Trio Travel System (Camden, Black)",
-    image: "/products/2.jpg",
-    mrp: 44990.0,
-    price: 38241.5,
-    perUnit: null,
-  },
-  {
-    id: 3,
     name: "Baby Body Lotion (500ml)",
     image: "/products/3.jpeg",
     mrp: 679.0,
@@ -32,12 +23,20 @@ const products = [
     perUnit: "₹1.15/ml",
   },
   {
+    id: 3,
+    name: "Baby Shampoo (300ml)",
+    image: "/products/3.jpeg",
+    mrp: 499.0,
+    price: 449.0,
+    perUnit: "₹1.50/ml",
+  },
+  {
     id: 4,
-    name: "Polly Easy Highchair (Pinguin, Blue)",
-    image: "/products/4.webp",
-    mrp: 16990.0,
-    price: 16990.0,
-    perUnit: null,
+    name: "Baby Oil (200ml)",
+    image: "/products/3.jpeg",
+    mrp: 399.0,
+    price: 359.0,
+    perUnit: "₹1.80/ml",
   },
 ];
 
@@ -58,8 +57,9 @@ const HeartIcon = () => (
   </svg>
 );
 
-const ProductsList = () => {
-  const { addToCart } = useCart();
+export default function ProductsList() {
+  const { addToCart, totalItems } = useCart();
+  const [showCheckoutPrompt, setShowCheckoutPrompt] = useState(null);
 
   const handleAddToCart = (product) => {
     addToCart({
@@ -70,13 +70,14 @@ const ProductsList = () => {
       price: product.price,
       perUnit: product.perUnit
     }, 1);
-    toast.success(`${product.name} added to cart!`);
+    setShowCheckoutPrompt(product.id);
+    setTimeout(() => setShowCheckoutPrompt(null), 3000);
   };
 
   return (
     <div className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Most Loved Products" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-8">Most Loved Products</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
             <div
@@ -120,12 +121,21 @@ const ProductsList = () => {
               >
                 Add to Cart
               </button>
+
+              {showCheckoutPrompt === product.id && (
+                <div className="mt-2 w-full text-center">
+                  <Link 
+                    href="/cart" 
+                    className="text-sm text-pink-600 font-medium hover:underline"
+                  >
+                    Proceed to Checkout ({totalItems})
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-};
-
-export default ProductsList;
+}

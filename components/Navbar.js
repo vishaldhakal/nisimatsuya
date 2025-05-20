@@ -2,6 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
+import { useCart } from "../components/Cart/CartContext";
+import { ShoppingBag } from "lucide-react";
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -9,6 +11,7 @@ export default function Navbar() {
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const timeoutRef = useRef(null);
   const dropdownRef = useRef(null);
+  const { totalItems } = useCart();
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -185,20 +188,12 @@ export default function Navbar() {
           
           {/* Cart Icon (visible on all screens) */}
           <Link href="/cart" className="ml-0 md:ml-4 relative">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 md:w-7 md:h-7 text-pink-600"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437m0 0l1.7 6.385a2.25 2.25 0 002.183 1.692h7.299a2.25 2.25 0 002.183-1.692l1.7-6.385m-13.165 0h13.165"
-              />
-            </svg>
+            <ShoppingBag className="w-6 h-6 text-pink-600" />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {totalItems > 9 ? '9+' : totalItems}
+              </span>
+            )}
           </Link>
           
           {/* Mobile Menu Button */}
