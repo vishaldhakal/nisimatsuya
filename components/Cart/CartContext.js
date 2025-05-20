@@ -12,7 +12,6 @@ export function CartProvider({ children }) {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
 
-  // Load cart from localStorage on initial render
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
@@ -26,7 +25,6 @@ export function CartProvider({ children }) {
     setIsInitialized(true);
   }, []);
 
-  // Update localStorage and calculate totals whenever cart changes
   useEffect(() => {
     if (!isInitialized) return;
     
@@ -39,15 +37,28 @@ export function CartProvider({ children }) {
     setTotalAmount(amount);
   }, [cartItems, isInitialized]);
 
+  // Create a unique key for each product
+  const createProductKey = (product) => {
+    // Using name as part of the key to differentiate products with same ID but from different components
+    return `${product.id}_${product.name}`;
+  };
+
   const addToCart = (product, quantity = 1) => {
+    const productKey = createProductKey(product);
+    
     setCartItems(prevItems => {
-      const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
+      // Find existing item using the combined key
+      const existingItem = prevItems.find(item => createProductKey(item) === productKey);
       
-      if (existingItemIndex !== -1) {
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
-        return updatedItems;
+      if (existingItem) {
+        // Update quantity of existing item
+        return prevItems.map(item => 
+          createProductKey(item) === productKey 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       } else {
+        // Add new item
         return [...prevItems, { ...product, quantity }];
       }
     });
@@ -58,18 +69,24 @@ export function CartProvider({ children }) {
     setTimeout(() => setShowNotification(false), 3000);
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, productName, quantity) => {
+    const productKey = `${productId}_${productName}`;
+    
     setCartItems(prevItems => 
       prevItems.map(item => 
-        item.id === productId 
+        createProductKey(item) === productKey
           ? { ...item, quantity: Math.max(1, quantity) } 
           : item
       )
     );
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+  const removeFromCart = (productId, productName) => {
+    const productKey = `${productId}_${productName}`;
+    
+    setCartItems(prevItems => 
+      prevItems.filter(item => createProductKey(item) !== productKey)
+    );
   };
 
   const clearCart = () => {

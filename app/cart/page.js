@@ -33,98 +33,65 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-          <div className="text-lg font-medium text-gray-600">
-            Total Items: <span className="text-pink-600 font-bold">{totalItems}</span>
-          </div>
-        </div>
-        
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Cart Items */}
-          <div className="lg:col-span-8">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6 lg:mb-0">
-              <div className="p-6">
+          <div className="md:col-span-2">
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                Shopping Cart <span className="ml-2 text-gray-500 font-normal">({totalItems} items)</span>
+              </h2>
+              <div>
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row py-6 border-b border-gray-200 last:border-0">
-                    <div className="flex-shrink-0 sm:mr-6 mb-4 sm:mb-0">
-                      <div className="w-full sm:w-24 h-24 relative">
-                        <Image 
-                          src={item.image} 
-                          alt={item.name} 
-                          fill
-                          className="object-contain" 
-                        />
-                      </div>
+                  <div key={item.id} className="flex items-center py-4 border-b last:border-b-0">
+                    <div className="w-16 h-16 relative flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                      <Image 
+                        src={item.image} 
+                        alt={item.name} 
+                        fill
+                        className="object-contain"
+                      />
                     </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:justify-between">
+                    <div className="flex-1 ml-4">
+                      <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="text-lg font-medium text-gray-900">
-                            <Link href={`/products/${item.id}`} className="hover:text-pink-500">
-                              {item.name}
-                            </Link>
-                          </h3>
-                          <div className="mt-1 flex items-center">
-                            <span className="text-sm text-gray-400 line-through mr-2">
-                              ₹{item.mrp.toLocaleString()}
-                            </span>
-                            <span className="text-base text-black font-bold">
-                              ₹{item.price.toLocaleString()}
-                            </span>
-                            {item.perUnit && (
-                              <span className="text-xs text-gray-400 ml-1">
-                                ({item.perUnit})
-                              </span>
-                            )}
+                          <div className="font-semibold text-gray-900">{item.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {item.perUnit ? item.perUnit : ""}
                           </div>
                         </div>
-                        
-                        <div className="flex items-center mt-4 sm:mt-0">
-                          <div className="flex items-center border border-gray-300 rounded-lg mr-4">
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                            >
-                              -
-                            </button>
-                            <span className="px-3 py-1 text-gray-800">{item.quantity}</span>
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                            >
-                              +
-                            </button>
-                          </div>
-                          
-                          <button 
-                            onClick={() => removeFromCart(item.id)}
-                            className="text-gray-400 hover:text-red-500"
+                        <div className="font-semibold text-gray-900 whitespace-nowrap">
+                          ₹{(item.price * item.quantity).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="flex items-center mt-2">
+                        <div className="flex items-center border border-gray-300 rounded-lg">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.name, item.quantity - 1)}
+                            className="px-3 py-1 text-gray-600 hover:bg-gray-100"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            -
+                          </button>
+                          <span className="px-3 py-1 text-gray-800 font-semibold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.name, item.quantity + 1)}
+                            className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                          >
+                            +
                           </button>
                         </div>
-                      </div>
-                      
-                      <div className="mt-2 text-sm font-medium text-gray-900">
-                        Subtotal: ₹{(item.price * item.quantity).toLocaleString()}
+                        <button 
+                          onClick={() => removeFromCart(item.id, item.name)}
+                          className="ml-4 text-pink-500 hover:text-red-500"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              
-              <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
-                <Link 
-                  href="/products" 
-                  className="text-pink-600 font-medium flex items-center hover:text-pink-700"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Continue Shopping
-                </Link>
-                
+              <div className="flex justify-end mt-6">
                 <button 
                   onClick={clearCart}
                   className="text-gray-600 font-medium flex items-center hover:text-red-600"
@@ -137,53 +104,35 @@ export default function CartPage() {
           </div>
           
           {/* Order Summary */}
-          <div className="lg:col-span-4 mt-8 lg:mt-0">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
+          <div>
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="text-gray-900 font-medium">₹{totalAmount.toLocaleString()}</span>
               </div>
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">Delivery</span>
+                <span className="text-gray-900 font-medium">{totalAmount >= 499 ? 'Free' : '₹99'}</span>
+              </div>
+              <div className="flex justify-between mb-4">
+                <span className="text-gray-600">Tax (18% GST)</span>
+                <span className="text-gray-900 font-medium">₹{(totalAmount * 0.18).toLocaleString()}</span>
+              </div>
+              <div className="border-t border-gray-200 my-4"></div>
+              <div className="flex justify-between mb-6">
+                <span className="text-lg font-bold text-gray-900">Total</span>
+                <span className="text-lg font-bold text-gray-900">
+                  ₹{(totalAmount + (totalAmount >= 499 ? 0 : 99) + (totalAmount * 0.18)).toLocaleString()}
+                </span>
+              </div>
+              <Link
+                href="/checkout"
+                className="w-full block text-center bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg transition-colors duration-200 mb-4"
+              >
+                Place Order
+              </Link>
               
-              <div className="p-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Items ({totalItems})</span>
-                    <span className="text-gray-900 font-medium">₹{totalAmount.toLocaleString()}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="text-gray-900 font-medium">
-                      {totalAmount >= 499 ? 'Free' : '₹99'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (18% GST)</span>
-                    <span className="text-gray-900 font-medium">₹{(totalAmount * 0.18).toLocaleString()}</span>
-                  </div>
-                  
-                  <div className="h-px bg-gray-200 my-4"></div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-lg font-bold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      ₹{(totalAmount + (totalAmount >= 499 ? 0 : 99) + (totalAmount * 0.18)).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                
-                <Link
-                  href="/checkout"
-                  className="w-full mt-6 flex justify-center bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200"
-                >
-                  Proceed to Checkout
-                </Link>
-                
-                <div className="mt-6 text-center text-sm text-gray-500">
-                  <p>Safe & Secure Payments</p>
-                  <p>100% Authentic Products</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

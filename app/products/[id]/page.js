@@ -3,15 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Share2,
-  Truck,
-  Shield,
-  RefreshCw,
-  ChevronRight,
-  Home,
-} from "lucide-react";
+import { Share2, Truck, Shield, RefreshCw, ChevronRight, Home, Heart, ShoppingCart } from "lucide-react";
 import { useCart } from "../../../components/Cart/CartContext";
+import ProductCard from "../../../components/ProductCard";
 
 // Sample product data
 const product = {
@@ -38,30 +32,76 @@ const product = {
     Volume: "500ml",
     "Age Group": "0+ months",
   },
+  isNew: false,
+  isPopular: true,
 };
 
-const HeartIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-6 h-6 text-gray-300 hover:text-pink-400 transition-colors duration-200"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z"
-    />
-  </svg>
-);
+// Related products
+const relatedProducts = [
+  {
+    id: 3,
+    name: "Baby Body Lotion (500ml)",
+    image: "/products/3.jpeg",
+    mrp: 679.0,
+    price: 577.15,
+    perUnit: "₹1.15/ml",
+    isNew: false,
+    isPopular: false
+  },
+  {
+    id: 5,
+    name: "Baby Powder (200g)",
+    image: "/products/1.jpg",
+    mrp: 299.0,
+    price: 249.0,
+    perUnit: "₹1.25/g",
+    isNew: true,
+    isPopular: false
+  },
+  {
+    id: 7,
+    name: "Baby Massage Oil (200ml)",
+    image: "/products/4.webp",
+    mrp: 399.0,
+    price: 349.0,
+    perUnit: "₹1.75/ml",
+    isNew: false,
+    isPopular: true
+  },
+];
 
-export default function ProductDetail() {
+const Badge = ({ type, text }) => {
+  const getStyles = () => {
+    switch (type) {
+      case 'new':
+        return 'bg-orange-100 text-orange-600';
+      case 'popular':
+        return 'bg-pink-100 text-pink-600';
+      case 'discount':
+        return 'bg-red-100 text-red-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStyles()}`}>
+      {text}
+    </span>
+  );
+};
+
+export default function EnhancedProductDetail() {
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [quantity, setQuantity] = useState(1);
   const { addToCart, totalItems } = useCart();
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const discountPercentage = 
+    product.mrp > product.price 
+      ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
+      : 0;
 
   const handleAddToCart = () => {
     addToCart({
@@ -96,34 +136,51 @@ export default function ProductDetail() {
           </ol>
         </nav>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 lg:p-8">
+        <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Image Gallery */}
             <div className="space-y-4">
-              <div className="relative h-96 rounded-xl overflow-hidden">
-                <Image
-                  src={selectedImage}
-                  alt={product.name}
-                  fill
-                  className="object-contain"
-                />
+              <div className="relative rounded-3xl overflow-hidden border-2 border-pink-100 bg-white">
+                {product.isNew && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge type="new" text="NEW" />
+                  </div>
+                )}
+                {product.isPopular && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge type="popular" text="POPULAR" />
+                  </div>
+                )}
+                {discountPercentage > 0 && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge type="discount" text={`${discountPercentage}%`} />
+                  </div>
+                )}
+                <div className="h-96 relative">
+                  <Image
+                    src={selectedImage}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-6"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(image)}
-                    className={`relative h-24 rounded-lg overflow-hidden ${
+                    className={`relative h-24 rounded-xl overflow-hidden border-2 ${
                       selectedImage === image
-                        ? "ring-2 ring-pink-500"
-                        : "hover:ring-2 hover:ring-gray-300"
+                        ? "border-pink-500"
+                        : "border-gray-200 hover:border-pink-300"
                     }`}
                   >
                     <Image
                       src={image}
                       alt={`${product.name} - Image ${index + 1}`}
                       fill
-                      className="object-contain"
+                      className="object-contain p-2"
                     />
                   </button>
                 ))}
@@ -144,6 +201,9 @@ export default function ProductDetail() {
                 {product.perUnit && (
                   <span className="text-sm text-gray-400">({product.perUnit})</span>
                 )}
+                {discountPercentage > 0 && (
+                  <span className="ml-2 text-sm font-medium text-green-600">Save {discountPercentage}%</span>
+                )}
               </div>
 
               <p className="text-gray-600">{product.description}</p>
@@ -161,14 +221,14 @@ export default function ProductDetail() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center border border-gray-300 rounded-lg">
+                <div className="flex items-center border-2 border-gray-200 rounded-lg">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="px-3 py-2 text-gray-600 hover:bg-gray-100"
                   >
                     -
                   </button>
-                  <span className="px-4 py-2 text-gray-900">{quantity}</span>
+                  <span className="px-4 py-2 text-gray-900 font-medium">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     className="px-3 py-2 text-gray-600 hover:bg-gray-100"
@@ -176,45 +236,61 @@ export default function ProductDetail() {
                     +
                   </button>
                 </div>
+                
                 <button 
                   onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                  className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-pink-700 hover:to-pink-600 transition-colors duration-200"
                 >
                   Add to Cart
                 </button>
-                <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                  <HeartIcon />
+                
+                <button 
+                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                >
+                  <Heart 
+                    className={`w-6 h-6 ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`} 
+                  />
                 </button>
-                <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                  <Share2 className="w-6 h-6 text-gray-600" />
+                
+                <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50">
+                  <Share2 className="w-6 h-6 text-gray-400" />
                 </button>
               </div>
 
               {isAddedToCart && (
-                <div className="mt-4 p-4 bg-pink-50 rounded-lg flex justify-between items-center">
-                  <p className="text-pink-700">
-                    {quantity} {product.name} added to your cart
-                  </p>
+                <div className="mt-4 py-4 px-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-green-700">
+                      {quantity} {quantity > 1 ? 'items' : 'item'} added to your cart
+                    </p>
+                    <Link 
+                      href="/cart" 
+                      className="text-green-600 hover:text-green-800 text-sm font-medium"
+                    >
+                      View Cart ({totalItems})
+                    </Link>
+                  </div>
                   <Link 
                     href="/cart" 
-                    className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                    className="block w-full bg-gradient-to-r from-green-600 to-green-500 text-white text-center font-semibold py-3 rounded-lg hover:from-green-700 hover:to-green-600 transition-colors duration-200"
                   >
-                    Proceed to Checkout ({totalItems})
+                    Proceed to Checkout
                   </Link>
                 </div>
               )}
 
               <div className="border-t border-gray-200 pt-6 space-y-4">
                 <div className="flex items-center gap-3 text-gray-600">
-                  <Truck className="w-5 h-5" />
+                  <Truck className="w-5 h-5 text-pink-500" />
                   <span>Free Delivery on orders above ₹499</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <Shield className="w-5 h-5" />
+                  <Shield className="w-5 h-5 text-pink-500" />
                   <span>100% Authentic Products</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <RefreshCw className="w-5 h-5" />
+                  <RefreshCw className="w-5 h-5 text-pink-500" />
                   <span>Easy 7 Days Returns</span>
                 </div>
               </div>
@@ -226,10 +302,20 @@ export default function ProductDetail() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Specifications</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(product.specifications).map(([key, value]) => (
-                <div key={key} className="flex">
+                <div key={key} className="flex border-b border-gray-100 py-2">
                   <span className="w-1/3 text-gray-600">{key}</span>
                   <span className="w-2/3 text-gray-900">{value}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Related Products */}
+          <div className="mt-16 border-t border-gray-200 pt-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">You May Also Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>

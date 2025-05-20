@@ -210,7 +210,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <nav className="mb-2">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
@@ -228,7 +228,7 @@ export default function AboutPage() {
             <li className="text-gray-900 font-medium">About Us</li>
           </ol>
         </nav>
-      </div>
+      </div> */}
 
       {/* Hero Section */}
       <div className="relative bg-white">
@@ -449,4 +449,3 @@ export default function AboutPage() {
     </div>
   );
 }
-
