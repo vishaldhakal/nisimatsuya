@@ -1,31 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { 
-  BarChart, 
-  LineChart, 
-  Area, 
-  AreaChart,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  Bar, 
-  Line 
-} from 'recharts';
-import { 
-  Package, 
-  ShoppingCart, 
-  Clock, 
-  DollarSign, 
-  TrendingUp,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle
-} from 'lucide-react';
-import Link from 'next/link';
+import { RefreshCw } from 'lucide-react';
+import {
+  StatCard,
+  SalesChart,
+  OrdersChart,
+  RecentOrdersTable,
+  LoadingState
+} from '../../components/admin';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -121,37 +104,8 @@ export default function AdminDashboard() {
     }));
   };
 
-  const getStatusColor = (status) => {
-    switch(status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
-    }
-  };
-
-  const formatCurrency = (amount) => {
-    return Number(amount).toLocaleString(undefined, { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
-  };
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="flex flex-col items-center">
-          <RefreshCw className="w-12 h-12 text-blue-500 animate-spin" />
-          <p className="mt-4 text-lg">Loading dashboard data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -166,150 +120,59 @@ export default function AdminDashboard() {
         
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-medium text-gray-500">Total Products</div>
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Package className="w-6 h-6 text-blue-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">{stats.totalProducts}</div>
-            <div className="text-sm text-green-600 flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1" /> +2.5% from last month
-            </div>
-          </div>
+          <StatCard 
+            title="Total Products"
+            value={stats.totalProducts}
+            icon="Package"
+            iconColor="blue"
+            trend="+2.5% from last month"
+            trendDirection="up"
+          />
           
-          <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-medium text-gray-500">Total Orders</div>
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <ShoppingCart className="w-6 h-6 text-purple-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">{stats.totalOrders}</div>
-            <div className="text-sm text-green-600 flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1" /> +5.2% from last month
-            </div>
-          </div>
+          <StatCard 
+            title="Total Orders"
+            value={stats.totalOrders}
+            icon="ShoppingCart"
+            iconColor="purple"
+            trend="+5.2% from last month"
+            trendDirection="up"
+          />
           
-          <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-medium text-gray-500">Pending Orders</div>
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">{stats.pendingOrders}</div>
-            <div className="flex justify-between text-sm">
-              <div className="text-yellow-600 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1" /> Needs attention
-              </div>
-            </div>
-          </div>
+          <StatCard 
+            title="Pending Orders"
+            value={stats.pendingOrders}
+            icon="Clock"
+            iconColor="yellow"
+            trend="Needs attention"
+            trendDirection="alert"
+          />
           
-          <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-medium text-gray-500">Total Revenue</div>
-              <div className="p-2 bg-green-50 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold mb-1">
-              {formatCurrency(stats.revenue)}
-            </div>
-            <div className="text-sm text-green-600 flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1" /> +8.1% from last month
-            </div>
-          </div>
+          <StatCard 
+            title="Total Revenue"
+            value={stats.revenue}
+            icon="DollarSign"
+            iconColor="green"
+            trend="+8.1% from last month"
+            trendDirection="up"
+            isCurrency={true}
+          />
         </div>
         
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-medium mb-4">Sales Overview</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value, name) => {
-                  if (name === 'sales') return formatCurrency(value);
-                  return value;
-                }} />
-                <Area type="monotone" dataKey="sales" stroke="#6366F1" fillOpacity={1} fill="url(#colorSales)" name="Sales" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <SalesChart data={salesData} />
           </div>
           
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-medium mb-4">Order Statistics</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={salesData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="orders" fill="#A78BFA" name="Orders" />
-              </BarChart>
-            </ResponsiveContainer>
+            <OrdersChart data={salesData} />
           </div>
         </div>
         
         {/* Recent Orders */}
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-medium">Recent Orders</h3>
-            <Link href="/admin/orders" >
-             <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">View All Orders</button>
-            </Link>
-           
-          </div>
-          
-          {recentOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <ShoppingCart className="w-12 h-12 mb-3 text-gray-400" />
-              <p>No recent orders found</p>
-              <p className="text-sm mt-1">New orders will appear here</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {recentOrders.map((order, idx) => (
-                    <tr key={order.id || idx} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id || `00${idx + 1}`}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customer || 'Customer ' + (idx + 1)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(order.totalAmount)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.createdAt || new Date()).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <RecentOrdersTable orders={recentOrders} />
       </div>
     </div>
   );
