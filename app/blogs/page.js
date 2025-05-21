@@ -48,57 +48,57 @@ export default function BlogsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-pink-100">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-pink-200 to-pink-300 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-4 text-pink-800">Nishimatsuya Baby Blog</h1>
-          <p className="text-xl text-pink-700">Expert advice and tips for parents and caregivers</p>
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-pink-200 to-pink-300 py-16 rounded-xl mt-6 mb-10">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 text-pink-800">Nishimatsuya Baby Blog</h1>
+            <p className="text-xl text-pink-700">Expert advice and tips for parents and caregivers</p>
+          </div>
         </div>
-      </div>
 
-      {/* Blog Posts */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogs.map((blog) => (
-            <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-pink-100">
-              <div className="relative h-56 w-full overflow-hidden">
-                <Image 
-                  src={blog.image} 
-                  alt={blog.title}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="inline-block bg-pink-500 text-white text-xs px-3 py-1 rounded-full font-medium">
-                    {blog.category}
-                  </span>
-                </div>
-              </div>
-              <div className="p-6">
-                <h2 className="text-xl font-bold mb-2 text-pink-800 hover:text-pink-600 transition-colors">
-                  <Link href={`/blogs/${blog.id}`}>{blog.title}</Link>
-                </h2>
-                <p className="text-gray-600 mb-4">{blog.excerpt}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <FaCalendarAlt className="mr-1 text-pink-500" />
-                    <span>{blog.date}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FaUser className="mr-1 text-pink-500" />
-                    <span>{blog.author}</span>
+        {/* Blog Posts */}
+        <div className="py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogs.map((blog) => (
+              <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-pink-100 flex flex-col">
+                <div className="relative h-56 w-full overflow-hidden">
+                  <Image 
+                    src={blog.image} 
+                    alt={blog.title}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-block bg-pink-500 text-white text-xs px-3 py-1 rounded-full font-medium">
+                      {blog.category}
+                    </span>
                   </div>
                 </div>
+                <div className="p-6 flex flex-col flex-1">
+                  <h2 className="text-xl font-bold mb-2 text-pink-800 hover:text-pink-600 transition-colors">
+                    <Link href={`/blogs/${blog.id}`}>{blog.title}</Link>
+                  </h2>
+                  <p className="text-gray-600 mb-4 flex-1">{blog.excerpt}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-1 text-pink-500" />
+                      <span>{blog.date}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaUser className="mr-1 text-pink-500" />
+                      <span>{blog.author}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Newsletter */}
-      <div className="bg-pink-200 py-12 border-t border-pink-300">
-        <div className="container mx-auto px-4">
+        {/* Newsletter */}
+        <div className="bg-pink-200 py-12 border-t border-pink-300 rounded-xl mb-8">
           <div className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4 text-pink-800 text-center">Stay Updated with Baby Care Tips</h2>
             <p className="mb-6 text-center text-pink-700">Subscribe to our newsletter for the latest parenting advice, product updates, and exclusive offers.</p>

@@ -7,10 +7,8 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Filter, 
-  RefreshCw, 
-  Tag,
   ArrowUpDown,
+  RefreshCw, 
   Package,
   AlertCircle
 } from 'lucide-react';
@@ -22,8 +20,6 @@ export default function AdminProducts() {
   const [isLoading, setIsLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     // Simulate loading delay for data fetching
@@ -31,29 +27,18 @@ export default function AdminProducts() {
       const storedProducts = JSON.parse(localStorage.getItem('products') || '[]');
       setProducts(storedProducts);
       setFilteredProducts(storedProducts);
-      
-      // Extract unique categories
-      const uniqueCategories = [...new Set(storedProducts.map(p => p.category || 'Uncategorized'))];
-      setCategories(['all', ...uniqueCategories]);
-      
       setIsLoading(false);
     }, 500);
   }, []);
 
   useEffect(() => {
-    // Filter products based on search term and category
+    // Filter products based on search term
     let results = [...products];
     
     if (searchTerm) {
       results = results.filter(product => 
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (selectedCategory !== 'all') {
-      results = results.filter(product => 
-        (product.category || 'Uncategorized') === selectedCategory
       );
     }
     
@@ -82,7 +67,7 @@ export default function AdminProducts() {
     });
     
     setFilteredProducts(results);
-  }, [products, searchTerm, sortConfig, selectedCategory]);
+  }, [products, searchTerm, sortConfig]);
 
   const handleSort = (key) => {
     let direction = 'ascending';
@@ -182,22 +167,6 @@ export default function AdminProducts() {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative rounded-md flex items-center">
-                <Filter className="h-5 w-5 text-gray-400 absolute left-3" />
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="border border-gray-300 rounded-lg pl-10 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-                >
-                  {categories.map(category => (
-                    <option key={category} value={category}>
-                      {category === 'all' ? 'All Categories' : category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </div>
         </div>
         
@@ -224,9 +193,6 @@ export default function AdminProducts() {
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -249,7 +215,12 @@ export default function AdminProducts() {
                               )}
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                              <Link
+                                href={`/admin/products/edit?id=${product.id}`}
+                                className="text-sm font-medium text-blue-600 hover:underline"
+                              >
+                                {product.name}
+                              </Link>
                               {product.description && (
                                 <div className="text-xs text-gray-500 truncate max-w-xs">{product.description}</div>
                               )}
@@ -267,16 +238,6 @@ export default function AdminProducts() {
                               {stockStatus.text}
                             </span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {product.category ? (
-                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full flex items-center w-fit">
-                              <Tag className="h-3 w-3 mr-1" />
-                              {product.category}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500 text-xs">Uncategorized</span>
-                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {showDeleteConfirm === product.id ? (
@@ -312,19 +273,16 @@ export default function AdminProducts() {
                 <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
                 <p className="text-gray-500 mb-4">
-                  {searchTerm || selectedCategory !== 'all' 
-                    ? "Try adjusting your search or filter to find what you're looking for."
+                  {searchTerm 
+                    ? "Try adjusting your search to find what you're looking for."
                     : "You haven't added any products yet. Get started by adding your first product."}
                 </p>
-                {searchTerm || selectedCategory !== 'all' ? (
+                {searchTerm ? (
                   <button 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedCategory('all');
-                    }}
+                    onClick={() => setSearchTerm('')}
                     className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
                   >
-                    <RefreshCw className="w-4 h-4 mr-2" /> Clear filters
+                    <RefreshCw className="w-4 h-4 mr-2" /> Clear search
                   </button>
                 ) : (
                   <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">

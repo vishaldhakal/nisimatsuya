@@ -159,7 +159,7 @@ export default function AdminDashboard() {
         </div>
         
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ml-2 mb-8">
           <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-medium mb-4">Sales Overview</h3>
             <SalesChart data={salesData} />

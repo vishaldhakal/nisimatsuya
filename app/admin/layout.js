@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
+import Link from 'next/link';
 export default function AdminLayout({ children }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,7 +19,7 @@ export default function AdminLayout({ children }) {
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+            <Link href="/admin" className="text-2xl font-bold text-gray-800"><h1 className="text-xl font-bold">Admin Dashboard</h1></Link>
             {/* Desktop Nav */}
             <nav className="hidden md:flex space-x-8">
               <a href="/admin" className="text-gray-700 hover:text-gray-900">Dashboard</a>
