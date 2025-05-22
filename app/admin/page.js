@@ -9,8 +9,10 @@ import {
   RecentOrdersTable,
   LoadingState
 } from '../../components/admin';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
@@ -20,6 +22,13 @@ export default function AdminDashboard() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [salesData, setSalesData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      router.push('/admin/login');
+    }
+  }, [router]);
 
   useEffect(() => {
     // Simulate loading delay for data fetching
