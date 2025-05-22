@@ -121,13 +121,14 @@ const ProductCard = ({ product, isSpecial = false }) => {
       <Link href={`/products/${product.id}`} className="block h-full">
         <div className="relative bg-white h-full flex flex-col p-4">
           <div className="relative flex-1 flex items-center justify-center mb-3 p-2">
-            <Image
-              src={product.image}
-              alt={product.name}
-              width={180}
-              height={180}
-              className="object-contain max-h-48"
-            />
+           <Image
+            src={product.images?.[0]?.image} 
+            alt={product.name}
+            width={180}
+            height={180}
+            className="object-contain max-h-48"
+          />
+            
             
             {/* Desktop hover add to cart */}
             {!isMobile && (

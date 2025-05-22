@@ -21,7 +21,17 @@ function EditProductPage() {
   useEffect(() => {
     if (!id) return;
     fetchProduct(id)
-      .then(setInitialData)
+      .then((data) => {
+        // Normalize images for ProductForm
+        const images = Array.isArray(data.images)
+          ? data.images.map(img =>
+              typeof img === 'string'
+                ? { name: '', image: img }
+                : img
+            )
+          : [];
+        setInitialData({ ...data, images });
+      })
       .catch(() => setInitialData(null));
   }, [id]);
 
