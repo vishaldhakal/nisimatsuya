@@ -1,22 +1,28 @@
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+"use client";
 
-const inter = Inter({ subsets: ["latin"] });
+import { CartProvider } from '../components/Cart/CartContext';
+import { ToasterProvider } from '../components/ToasterProvider';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { usePathname } from 'next/navigation';
 
-export const metadata = {
-  title: "Baby's All in One Store Nishimatsuya",
-  description: "Your Baby's All in One Store",
-};
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith('/admin');
+
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <CartProvider>
+          <ToasterProvider />
+          {!isAdmin && <Navbar />}
+          <main>{children}</main>
+          {!isAdmin && <Footer />}
+        </CartProvider>
       </body>
     </html>
   );
