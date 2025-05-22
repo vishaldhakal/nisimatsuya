@@ -110,7 +110,9 @@ export default function ProductForm({
     onSubmit(formData);
   };
 
-  const selectedCategory = categories.find(cat => String(cat.id) === String(formData.category));
+  const selectedCategory = Array.isArray(categories)
+  ? categories.find(cat => String(cat.id) === String(formData.category))
+  : null;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">

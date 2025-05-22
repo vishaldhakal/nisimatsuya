@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ProductsList2 from "../../../components/ProductsList2";
 import { Search, Filter, X } from "lucide-react";
+import CategoriesList from "../../../components/CategoriesList";
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -223,6 +224,12 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      {/* Categories Section */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Categories</h2>
+        <CategoriesList />
+      </div>
     </div>
   );
 }
