@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductsList2 from "../../components/ProductsList2";
 import { Search, Filter, X } from "lucide-react";
+import { fetchCategories } from "../../services/categoryService";
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -10,16 +11,13 @@ export default function ProductsPage() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 50000 });
   const [sortBy, setSortBy] = useState("featured");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-  const categories = [
-    "All",
-    "Bath & Body",
-    "Feeding",
-    "Nursery",
-    "Toys",
-    "Clothing",
-    "Travel",
-  ];
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   const sortOptions = [
     { value: "featured", label: "Featured" },
@@ -71,19 +69,28 @@ export default function ProductsPage() {
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-4">Categories</h2>
                 <div className="space-y-2">
+                  <button
+                    key="all"
+                    onClick={() => setSelectedCategory("all")}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
+                      selectedCategory === "all"
+                        ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
+                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    All
+                  </button>
                   {categories.map((category) => (
                     <button
-                      key={category}
-                      onClick={() =>
-                        setSelectedCategory(category.toLowerCase())
-                      }
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
                       className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
-                        selectedCategory === category.toLowerCase()
+                        selectedCategory === category.id
                           ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
                           : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                       }`}
                     >
-                      {category}
+                      {category.name}
                     </button>
                   ))}
                 </div>
@@ -181,20 +188,34 @@ export default function ProductsPage() {
             <div className="mb-6">
               <h3 className="font-medium mb-2">Categories</h3>
               <div className="space-y-2">
+                <button
+                  key="all"
+                  onClick={() => {
+                    setSelectedCategory("all");
+                    setIsFilterOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
+                    selectedCategory === "all"
+                      ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
+                      : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  All
+                </button>
                 {categories.map((category) => (
                   <button
-                    key={category}
+                    key={category.id}
                     onClick={() => {
-                      setSelectedCategory(category.toLowerCase());
+                      setSelectedCategory(category.id);
                       setIsFilterOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
-                      selectedCategory === category.toLowerCase()
+                      selectedCategory === category.id
                         ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
                         : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {category}
+                    {category.name}
                   </button>
                 ))}
               </div>

@@ -4,14 +4,23 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "../components/Cart/CartContext";
 import { ShoppingBag } from "lucide-react";
+import { fetchCategories } from "../services/categoryService"; // <-- Import your service
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState([]); // <-- State for categories
   const timeoutRef = useRef(null);
   const dropdownRef = useRef(null);
   const { totalItems } = useCart();
+
+  // Fetch categories from API
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -63,15 +72,6 @@ export default function Navbar() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
-  const categories = [
-    { name: "Baby Clothing", href: "/category/clothing" },
-    { name: "Baby Toys", href: "/category/toys" },
-    { name: "Baby Care", href: "/category/care" },
-    { name: "Baby Food", href: "/category/food" },
-    { name: "Baby Furniture", href: "/category/furniture" },
-    { name: "Baby Accessories", href: "/category/accessories" },
-  ];
 
   return (
     <nav className="bg-white shadow-sm relative z-20">
@@ -137,8 +137,8 @@ export default function Navbar() {
               <div className="py-1" role="menu">
                 {categories.map((category) => (
                   <Link
-                    key={category.name}
-                    href={category.href}
+                    key={category.id}
+                    href={`/category/${category.id}`}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-150"
                     role="menuitem"
                   >
@@ -305,7 +305,6 @@ export default function Navbar() {
                       />
                     </svg>
                   </button>
-                  
                   <div 
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${
                       isMobileDropdownOpen ? 'max-h-96' : 'max-h-0'
@@ -313,8 +312,8 @@ export default function Navbar() {
                   >
                     {categories.map((category) => (
                       <Link
-                        key={category.name}
-                        href={category.href}
+                        key={category.id}
+                        href={`/category/${category.id}`}
                         className="block px-8 py-2 text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-150"
                         onClick={toggleMobileMenu}
                       >

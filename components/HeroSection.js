@@ -1,5 +1,16 @@
+"use client";
 import Image from "next/image";
 import { Search, Baby, Gift, Truck, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { fetchCategories } from "../services/categoryService";
+
+// Optional: Map category names to icons
+const categoryIcons = {
+  clothing: <Baby size={24} />,
+  toys: <Gift size={24} />,
+  accessories: <Star size={24} />,
+  gear: <Truck size={24} />,
+};
 
 // Background pattern SVG component
 const BackgroundPattern = () => (
@@ -29,13 +40,13 @@ const BackgroundPattern = () => (
 );
 
 export default function HeroSection() {
-  // Category items
-  const categories = [
-    { icon: <Baby size={24} />, label: "Clothing" },
-    { icon: <Gift size={24} />, label: "Toys" },
-    { icon: <Star size={24} />, label: "Accessories" },
-    { icon: <Truck size={24} />, label: "Gear" },
-  ];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   return (
     <section className="relative bg-gradient-to-b from-yellow-50 to-pink-50 min-h-[600px] flex items-center justify-center overflow-hidden">
@@ -99,17 +110,19 @@ export default function HeroSection() {
 
             {/* Category icons */}
             <div className="flex flex-wrap justify-center md:justify-center gap-4 mb-8">
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <a
-                  key={index}
-                  href={`/category/${category.label.toLowerCase()}`}
+                  key={category.id}
+                  href={`/category/${category.id}`}
                   className="flex flex-row gap-1 items-center p-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:bg-pink-50 hover:scale-105"
                 >
                   <div className="bg-pink-50 rounded-full text-pink-600 p-2">
-                    {category.icon}
+                    {categoryIcons[category.name?.toLowerCase()] || (
+                      <Star size={24} />
+                    )}
                   </div>
                   <span className="text-sm font-medium text-gray-700">
-                    {category.label}
+                    {category.name}
                   </span>
                 </a>
               ))}

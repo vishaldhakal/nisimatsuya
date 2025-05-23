@@ -1,54 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useCart } from "../components/Cart/CartContext";
 import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
+import { fetchProducts } from "../services/productService";
+import { useCart } from "../components/Cart/CartContext";
 
-
-const defaultProducts = [
-  {
-    id: 9,
-    name: "Gentle Body Wash And Shampoo (500ml)",
-    image: "/products/1.jpg",
-    mrp: 679.0,
-    price: 597.52,
-    perUnit: "₹1.20/ml",
-    isNew: false,
-    isPopular: false
-  },
-  {
-    id: 10,
-    name: "Bravo Trio Travel System (Camden, Black)",
-    image: "/products/2.jpg",
-    mrp: 44990.0,
-    price: 38241.5,
-    perUnit: null,
-    isNew: true,
-    isPopular: false
-  },
-  {
-    id: 11,
-    name: "Baby Body Lotion (500ml)",
-    image: "/products/3.jpeg",
-    mrp: 679.0,
-    price: 577.15,
-    perUnit: "₹1.15/ml",
-    isNew: false,
-    isPopular: true
-  },
-  {
-    id: 12,
-    name: "Polly Easy Highchair (Pinguin, Blue)",
-    image: "/products/4.webp",
-    mrp: 16990.0,
-    price: 14990.0,
-    perUnit: null,
-    isNew: false,
-    isPopular: false
-  },
-];
 
 const ProductsList2 = ({
   searchQuery = "",
@@ -56,23 +12,15 @@ const ProductsList2 = ({
   priceRange = { min: 0, max: 50000 },
   sortBy = "featured"
 }) => {
-  const { addToCart, totalItems } = useCart();
+  const { addToCart } = useCart();
   const [addedItems, setAddedItems] = useState({});
-  const [allProducts, setAllProducts] = useState(defaultProducts);
-
+  const [allProducts, setAllProducts] = useState([]);
 
   useEffect(() => {
-    const storedProducts = JSON.parse(localStorage.getItem("products") || "[]");
-   
-    const merged = [
-      ...storedProducts,
-      ...defaultProducts.filter(
-        def => !storedProducts.some(prod => prod.id === def.id)
-      ),
-    ];
-    setAllProducts(merged);
+    fetchProducts()
+      .then(data => setAllProducts(Array.isArray(data) ? data : []))
+      .catch(() => setAllProducts([]));
   }, []);
-
 
   const filteredProducts = allProducts.filter(product => {
     const matchesSearch = product.name
@@ -86,7 +34,6 @@ const ProductsList2 = ({
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
-  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
