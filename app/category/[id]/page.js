@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductsList2 from "../../../components/ProductsList2";
 import { Search, Filter, X } from "lucide-react";
 import CategoriesList from "../../../components/CategoriesList";
+import { fetchCategories } from "../../../services/categoryService";
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,24 +12,13 @@ export default function ProductsPage() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 50000 });
   const [sortBy, setSortBy] = useState("featured");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-  const categories = [
-    "All",
-    "Bath & Body",
-    "Feeding",
-    "Nursery",
-    "Toys",
-    "Clothing",
-    "Travel",
-  ];
-
-  const sortOptions = [
-    { value: "featured", label: "Featured" },
-    { value: "price-low", label: "Price: Low to High" },
-    { value: "price-high", label: "Price: High to Low" },
-    { value: "name-asc", label: "Name: A to Z" },
-    { value: "name-desc", label: "Name: Z to A" },
-  ];
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data || []))
+      .catch(() => setCategories([]));
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,11 +50,11 @@ export default function ProductsPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                 >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                  <option value="featured">Featured</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
                 </select>
               </div>
 
@@ -72,19 +62,28 @@ export default function ProductsPage() {
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-4">Categories</h2>
                 <div className="space-y-2">
+                  <button
+                    key="all"
+                    onClick={() => setSelectedCategory("all")}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
+                      selectedCategory === "all"
+                        ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
+                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    All
+                  </button>
                   {categories.map((category) => (
                     <button
-                      key={category}
-                      onClick={() =>
-                        setSelectedCategory(category.toLowerCase())
-                      }
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
                       className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
-                        selectedCategory === category.toLowerCase()
+                        selectedCategory === category.id
                           ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
                           : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                       }`}
                     >
-                      {category}
+                      {category.name}
                     </button>
                   ))}
                 </div>
@@ -170,11 +169,11 @@ export default function ProductsPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
               >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
               </select>
             </div>
 
@@ -182,20 +181,34 @@ export default function ProductsPage() {
             <div className="mb-6">
               <h3 className="font-medium mb-2">Categories</h3>
               <div className="space-y-2">
+                <button
+                  key="all"
+                  onClick={() => {
+                    setSelectedCategory("all");
+                    setIsFilterOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
+                    selectedCategory === "all"
+                      ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
+                      : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  All
+                </button>
                 {categories.map((category) => (
                   <button
-                    key={category}
+                    key={category.id}
                     onClick={() => {
-                      setSelectedCategory(category.toLowerCase());
+                      setSelectedCategory(category.id);
                       setIsFilterOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
-                      selectedCategory === category.toLowerCase()
+                      selectedCategory === category.id
                         ? "bg-gradient-to-r from-pink-600 to-pink-500 text-white"
                         : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {category}
+                    {category.name}
                   </button>
                 ))}
               </div>

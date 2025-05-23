@@ -14,8 +14,8 @@ import {
   MoreVertical,
   X
 } from 'lucide-react';
-import { fetchProducts } from '../../../services/productService'; // 
-import { fetchCategories } from '../../../services/categoryService'; // Add this import
+import { fetchProducts } from '../../../services/productService';
+import { fetchCategories } from '../../../services/categoryService';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -37,7 +37,6 @@ export default function AdminProducts() {
       })
       .catch(() => setIsLoading(false));
 
-    // Fetch categories
     fetchCategories()
       .then(data => setCategories(Array.isArray(data) ? data : []))
       .catch(() => setCategories([]));
@@ -51,7 +50,6 @@ export default function AdminProducts() {
         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    // Sorting logic
     results.sort((a, b) => {
       if (sortConfig.key === 'price') {
         return sortConfig.direction === 'ascending' 
@@ -82,7 +80,6 @@ export default function AdminProducts() {
     setSortConfig({ key, direction });
   };
 
-  // You can implement API delete here if needed
   const deleteProduct = (id) => {
     setProducts(products.filter(product => product.id !== id));
     setFilteredProducts(filteredProducts.filter(product => product.id !== id));
@@ -121,7 +118,6 @@ export default function AdminProducts() {
       : <ArrowUpDown className="w-4 h-4 ml-1 text-blue-500 transform rotate-180" />;
   };
 
-  // Helper to get category name by id
   const getCategoryName = (id) => {
     const cat = categories.find(c => String(c.id) === String(id));
     return cat ? cat.name : <span className="text-gray-400">-</span>;
@@ -236,7 +232,11 @@ export default function AdminProducts() {
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden">
                                 {product.images && product.images.length > 0 ? (
-                                  <img className="h-10 w-10 object-cover" src={product.images[0].image} alt={product.name} />
+                                  <img
+                                    className="h-10 w-10 object-cover"
+                                    src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+                                    alt={product.name}
+                                  />
                                 ) : (
                                   <div className="h-10 w-10 bg-gray-200 flex items-center justify-center text-gray-500">
                                     <Package className="h-6 w-6" />
@@ -348,7 +348,11 @@ export default function AdminProducts() {
                           {/* Product Image */}
                           <div className="flex-shrink-0 h-12 w-12 sm:h-16 sm:w-16 rounded-lg overflow-hidden">
                             {product.images && product.images.length > 0 ? (
-                              <img className="h-full w-full object-cover" src={product.images[0].image} alt={product.name} />
+                              <img
+                                className="h-full w-full object-cover"
+                                src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+                                alt={product.name}
+                              />
                             ) : (
                               <div className="h-full w-full bg-gray-200 flex items-center justify-center text-gray-500">
                                 <Package className="h-6 w-6 sm:h-8 sm:w-8" />

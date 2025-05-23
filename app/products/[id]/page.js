@@ -1,123 +1,229 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Share2, Truck, Shield, RefreshCw, ChevronRight, Home, Heart, ShoppingCart } from "lucide-react";
 import { useCart } from "../../../components/Cart/CartContext";
-import ProductCard from "../../../components/ProductCard";
+import { fetchProductById, fetchProducts } from "../../../services/productService";
+import { fetchCategories } from "../../../services/categoryService";
 
-// Sample product data
-const product = {
-  id: 1,
-  name: "Gentle Body Wash And Shampoo (500ml)",
-  category: "Bath & Body",
-  mrp: 679.0,
-  price: 597.52,
-  perUnit: "₹1.20/ml",
-  description: "Gentle and nourishing body wash and shampoo specially formulated for babies.",
-  images: [
-    "/products/1.jpg",
-    "/products/2.jpg",
-    "/products/3.jpeg",
-    "/products/4.webp",
-  ],
-  features: [
-    "Hypoallergenic formula",
-    "No harmful chemicals",
-    "Suitable for daily use",
-  ],
-  specifications: {
-    "Product Type": "Body Wash & Shampoo",
-    Volume: "500ml",
-    "Age Group": "0+ months",
-  },
-  isNew: false,
-  isPopular: true,
-};
+// Related Product Card Component
+const RelatedProductCard = ({ product }) => {
+  const { addToCart } = useCart();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
 
-// Related products
-const relatedProducts = [
-  {
-    id: 3,
-    name: "Baby Body Lotion (500ml)",
-    image: "/products/3.jpeg",
-    mrp: 679.0,
-    price: 577.15,
-    perUnit: "₹1.15/ml",
-    isNew: false,
-    isPopular: false
-  },
-  {
-    id: 5,
-    name: "Baby Powder (200g)",
-    image: "/products/1.jpg",
-    mrp: 299.0,
-    price: 249.0,
-    perUnit: "₹1.25/g",
-    isNew: true,
-    isPopular: false
-  },
-  {
-    id: 7,
-    name: "Baby Massage Oil (200ml)",
-    image: "/products/4.webp",
-    mrp: 399.0,
-    price: 349.0,
-    perUnit: "₹1.75/ml",
-    isNew: false,
-    isPopular: true
-  },
-];
+  // Detect if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-const Badge = ({ type, text }) => {
-  const getStyles = () => {
-    switch (type) {
-      case 'new':
-        return 'bg-orange-100 text-orange-600';
-      case 'popular':
-        return 'bg-pink-100 text-pink-600';
-      case 'discount':
-        return 'bg-red-100 text-red-600';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    addToCart({
+      id: product.id,
+      name: product.name,
+      image: product.images?.[0]?.image || product.image,
+      mrp: product.market_price || product.mrp,
+      price: product.price,
+      perUnit: product.perUnit
+    }, 1);
+
+    setIsAddedToCart(true);
+    setTimeout(() => setIsAddedToCart(false), 5000);
   };
 
+  const discountPercentage = product.market_price && product.market_price > product.price
+    ? Math.round(((product.market_price - product.price) / product.market_price) * 100)
+    : 0;
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStyles()}`}>
-      {text}
-    </span>
+    <div className="relative">
+      <Link href={`/products/${product.id}`}>
+        <div 
+          className={`bg-white rounded-2xl border-2 border-pink-100 p-4 transition-all duration-300 ${
+            isHovered ? 'shadow-lg scale-[1.02]' : 'shadow-md'
+          }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Discount Badge */}
+          {discountPercentage > 0 && (
+            <div className="absolute top-2 left-2 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold z-10">
+              {discountPercentage}%
+            </div>
+          )}
+
+          {/* Product Image */}
+          <div className="relative h-48 mb-4 flex items-center justify-center bg-gray-50 rounded-xl">
+            <Image
+              src={
+                product.images?.[0]?.image
+                  ? `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`
+                  : product.image
+                    ? `${process.env.NEXT_PUBLIC_API_URL}${product.image}`
+                    : '/placeholder-product.jpg'
+              }
+              alt={product.name}
+              width={150}
+              height={150}
+              className="object-contain max-h-40"
+            />
+            
+            {/* Desktop hover add to cart */}
+            {!isMobile && (
+              <div 
+                className={`absolute inset-0 bg-black bg-opacity-10 flex items-center justify-center transition-opacity duration-300 ${
+                  isHovered ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <button
+                  onClick={handleAddToCart}
+                  className="bg-white text-pink-600 rounded-full p-2 shadow-lg transform transition-transform duration-300 hover:scale-110"
+                >
+                  <ShoppingCart size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Product Info */}
+          <div className="mb-3">
+            <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2">
+              {product.name}
+            </h3>
+            
+            <div className="flex flex-col">
+              {product.market_price && product.market_price > product.price && (
+                <span className="text-xs text-gray-400 line-through">
+                  ₹{product.market_price.toLocaleString()}
+                </span>
+              )}
+              <span className="text-lg font-bold text-gray-900">
+                ₹{product.price.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Mobile: Always visible add to cart button */}
+          {isMobile && (
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-medium rounded-xl py-2 px-4 flex items-center justify-center gap-2"
+            >
+              <ShoppingCart size={16} />
+              Add to Cart
+            </button>
+          )}
+        </div>
+      </Link>
+
+      {/* Confirmation after adding to cart */}
+      {isAddedToCart && (
+        <div className="absolute bottom-0 left-0 right-0 bg-green-50 px-3 py-3 text-center flex flex-col gap-2 rounded-b-2xl border-2 border-t-0 border-green-200 z-20">
+          <div className="text-green-800 text-xs">
+            Added to cart ✓
+          </div>
+          <Link 
+            href="/cart" 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg py-2 transition-colors duration-200"
+          >
+            Proceed to Checkout
+          </Link>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default function EnhancedProductDetail() {
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
+export default function EnhancedProductDetail({ params }) {
+  const { id } = params;
+  const [product, setProduct] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { addToCart, totalItems } = useCart();
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const discountPercentage = 
-    product.mrp > product.price 
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
-      : 0;
+  useEffect(() => {
+    // Fetch product details
+    fetchProductById(id)
+      .then(data => {
+        setProduct(data);
+        setSelectedImage(data.images?.[0]?.image);
+      })
+      .catch(error => {
+        console.error('Error fetching product:', error);
+      });
+
+    // Fetch categories
+    fetchCategories()
+      .then(setCategories)
+      .catch(error => {
+        console.error('Error fetching categories:', error);
+      });
+
+    // Fetch all products for related products
+    fetchProducts()
+      .then(products => {
+        // Filter out current product and get random 3 products
+        const otherProducts = products.filter(p => p.id !== parseInt(id));
+        const shuffled = otherProducts.sort(() => 0.5 - Math.random());
+        setRelatedProducts(shuffled.slice(0, 3));
+      })
+      .catch(error => {
+        console.error('Error fetching related products:', error);
+      });
+  }, [id]);
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const categoryName = categories.find(cat => String(cat.id) === String(product.category))?.name || product.category;
+
+  const discountPercentage = product.market_price && product.market_price > product.price
+    ? Math.round(((product.market_price - product.price) / product.market_price) * 100)
+    : 0;
 
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
       name: product.name,
-      image: product.images[0],
-      mrp: product.mrp,
+      image: product.images?.[0]?.image,
+      mrp: product.market_price,
       price: product.price,
       perUnit: product.perUnit
     }, quantity);
     setIsAddedToCart(true);
+    setTimeout(() => setIsAddedToCart(false), 5000);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumbs */}
         <nav className="mb-8">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
@@ -132,7 +238,7 @@ export default function EnhancedProductDetail() {
               </Link>
             </li>
             <li><ChevronRight className="w-4 h-4 text-gray-400" /></li>
-            <li className="text-gray-900 font-medium">{product.name}</li>
+            <li className="text-gray-900 font-medium truncate">{product.name}</li>
           </ol>
         </nav>
 
@@ -141,123 +247,146 @@ export default function EnhancedProductDetail() {
             {/* Image Gallery */}
             <div className="space-y-4">
               <div className="relative rounded-3xl overflow-hidden border-2 border-pink-100 bg-white">
-                {product.isNew && (
+                {/* Badges */}
+                {product.is_featured && (
                   <div className="absolute top-4 left-4 z-10">
-                    <Badge type="new" text="NEW" />
+                    <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-medium">FEATURED</span>
                   </div>
                 )}
-                {product.isPopular && (
+                {product.is_popular && (
                   <div className="absolute top-4 left-4 z-10">
-                    <Badge type="popular" text="POPULAR" />
+                    <span className="bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs font-medium">POPULAR</span>
                   </div>
                 )}
                 {discountPercentage > 0 && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <Badge type="discount" text={`${discountPercentage}%`} />
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">{discountPercentage}% OFF</span>
                   </div>
                 )}
+                
                 <div className="h-96 relative">
-                  <Image
-                    src={selectedImage}
-                    alt={product.name}
-                    fill
-                    className="object-contain p-6"
-                  />
+                  {selectedImage ? (
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${selectedImage}`}
+                      alt={product.name}
+                      fill
+                      className="object-contain p-6"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400">
+                      <span>No image available</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-4">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(image)}
-                    className={`relative h-24 rounded-xl overflow-hidden border-2 ${
-                      selectedImage === image
-                        ? "border-pink-500"
-                        : "border-gray-200 hover:border-pink-300"
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${product.name} - Image ${index + 1}`}
-                      fill
-                      className="object-contain p-2"
-                    />
-                  </button>
-                ))}
-              </div>
+              
+              {/* Image Thumbnails */}
+              {product.images && product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-4">
+                  {product.images.map((imageObj, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(imageObj.image)}
+                      className={`relative h-24 rounded-xl overflow-hidden border-2 ${
+                        selectedImage === imageObj.image
+                          ? "border-pink-500"
+                          : "border-gray-200 hover:border-pink-300"
+                      }`}
+                    >
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}${imageObj.image}`}
+                        alt={`${product.name} - Image ${index + 1}`}
+                        fill
+                        className="object-contain p-2"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product Info */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-                <p className="text-sm text-gray-500 mt-1">{product.category}</p>
+                <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+                <p className="text-sm text-gray-500 mt-1">{categoryName}</p>
               </div>
 
-              <div className="flex items-baseline gap-2">
-                <span className="text-xs text-gray-400 font-semibold">M.R.P.:</span>
-                <span className="text-sm text-gray-400 line-through">₹{product.mrp.toLocaleString()}</span>
-                <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                {product.perUnit && (
-                  <span className="text-sm text-gray-400">({product.perUnit})</span>
+              <div className="flex items-baseline gap-3">
+                {product.market_price && product.market_price > product.price && (
+                  <>
+                    <span className="text-xs text-gray-400 font-semibold">M.R.P.:</span>
+                    <span className="text-lg text-gray-400 line-through">₹{product.market_price.toLocaleString()}</span>
+                  </>
                 )}
+                <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
                 {discountPercentage > 0 && (
-                  <span className="ml-2 text-sm font-medium text-green-600">Save {discountPercentage}%</span>
+                  <span className="ml-2 text-sm font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                    Save {discountPercentage}%
+                  </span>
                 )}
               </div>
 
-              <p className="text-gray-600">{product.description}</p>
-
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Key Features:</h3>
-                <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-gray-600">
-                      <span className="w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              {/* Stock Status */}
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                </span>
               </div>
 
+              {/* Description */}
+              {product.description && (
+                <div className="text-gray-600 space-y-3">
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: product.description
+                        .replace(/<ul>/g, '<ul class="space-y-2 ml-4">')
+                        .replace(/<li>/g, '<li class="flex items-start gap-2"><span class="text-pink-500 mt-1">•</span><span>') 
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Quantity and Add to Cart */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center border-2 border-gray-200 rounded-lg">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                    className="px-3 py-2 text-gray-600 hover:bg-gray-100 transition-colors"
                   >
                     -
                   </button>
                   <span className="px-4 py-2 text-gray-900 font-medium">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                    className="px-3 py-2 text-gray-600 hover:bg-gray-100 transition-colors"
                   >
                     +
                   </button>
                 </div>
-                
                 <button 
                   onClick={handleAddToCart}
-                  className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-pink-700 hover:to-pink-600 transition-colors duration-200"
+                  disabled={product.stock === 0}
+                  className="flex-1 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-pink-700 hover:to-pink-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add to Cart
+                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                 </button>
-                
                 <button 
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50"
+                  className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   <Heart 
                     className={`w-6 h-6 ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`} 
                   />
                 </button>
-                
-                <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50">
+                <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                   <Share2 className="w-6 h-6 text-gray-400" />
                 </button>
               </div>
 
+              {/* Cart Confirmation */}
               {isAddedToCart && (
                 <div className="mt-4 py-4 px-4 bg-green-50 rounded-xl border border-green-200">
                   <div className="flex justify-between items-center mb-3">
@@ -280,6 +409,7 @@ export default function EnhancedProductDetail() {
                 </div>
               )}
 
+              {/* Service Info */}
               <div className="border-t border-gray-200 pt-6 space-y-4">
                 <div className="flex items-center gap-3 text-gray-600">
                   <Truck className="w-5 h-5 text-pink-500" />
@@ -296,30 +426,33 @@ export default function EnhancedProductDetail() {
               </div>
             </div>
           </div>
-
-          {/* Specifications */}
-          <div className="mt-12 border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Specifications</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(product.specifications).map(([key, value]) => (
-                <div key={key} className="flex border-b border-gray-100 py-2">
-                  <span className="w-1/3 text-gray-600">{key}</span>
-                  <span className="w-2/3 text-gray-900">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Related Products */}
-          <div className="mt-16 border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">You May Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
         </div>
+
+        {/* You May Also Like Section */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">You may also like</h2>
+              <p className="text-gray-600">Discover more products you might enjoy</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <RelatedProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
+            
+            <div className="text-center mt-8">
+              <Link 
+                href="/products" 
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-8 rounded-xl hover:from-pink-700 hover:to-pink-600 transition-colors duration-200"
+              >
+                View All Products
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

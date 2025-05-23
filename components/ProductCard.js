@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Heart } from "lucide-react";
+import { ShoppingCart} from "lucide-react";
 import { useCart } from "./Cart/CartContext";
 import { useState, useEffect } from "react";
 
@@ -79,7 +79,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Add complete product data to cart
+   
     addToCart({
       id: product.id,
       name: product.name,
@@ -87,12 +87,13 @@ const ProductCard = ({ product, isSpecial = false }) => {
       mrp: product.mrp,
       price: product.price,
       perUnit: product.perUnit,
-      // Include a source property to track where the product came from (optional)
+      
       source: product.source || "unknown"
     }, 1);
     
     setIsAddedToCart(true);
-    setTimeout(() => setIsAddedToCart(false), 10000); // Extended timeout to give user time to see checkout button
+    setTimeout(() => setIsAddedToCart(false), 10000);
+
   };
 
   return (
@@ -118,16 +119,17 @@ const ProductCard = ({ product, isSpecial = false }) => {
         <HeartIcon />
       </button>
 
+      
       <Link href={`/products/${product.id}`} className="block h-full">
         <div className="relative bg-white h-full flex flex-col p-4">
           <div className="relative flex-1 flex items-center justify-center mb-3 p-2">
            <Image
-            src={product.images?.[0]?.image} 
-            alt={product.name}
-            width={180}
-            height={180}
-            className="object-contain max-h-48"
-          />
+              src={ `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+              alt={product.name}
+              width={180}
+              height={180}
+              className="object-contain max-h-48"
+            />
             
             
             {/* Desktop hover add to cart */}
@@ -215,3 +217,4 @@ const ProductCard = ({ product, isSpecial = false }) => {
 };
 
 export default ProductCard;
+

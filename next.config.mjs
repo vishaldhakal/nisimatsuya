@@ -5,7 +5,9 @@ const nextConfig = {
       "images.unsplash.com",
       "127.0.0.1",
       "source.unsplash.com",
-      "m.media-amazon.com" 
+      "m.media-amazon.com",
+      "localhost",
+      "b7bwr4s3-8000.inc1.devtunnels.ms",
     ],
   },
 };
