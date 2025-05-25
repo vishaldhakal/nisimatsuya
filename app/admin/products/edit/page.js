@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
-import ProductForm from '../ProductForm';
-import { editProduct, fetchProduct, fetchCategories } from '../../../../services/productService';
+import {ProductForm} from '../../../../components/features/products';
+import { editProduct, fetchProduct, fetchCategories } from '../../../../services';
 
 function EditProductPage() {
   const router = useRouter();
@@ -49,7 +49,7 @@ function EditProductPage() {
     router.push("/admin/products");
   };
 
-  if (!id) return <div className="p-6 text-center">Invalid product ID.</div>;
+  if (!id) return <div className="p-6 text-center">Invalid product id.</div>;
   if (!initialData) return <div className="p-6 text-center">Loading...</div>;
 
   return (

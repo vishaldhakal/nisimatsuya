@@ -8,6 +8,9 @@ const nextConfig = {
       "m.media-amazon.com",
       "localhost",
       "b7bwr4s3-8000.inc1.devtunnels.ms",
+      "b7bwr4s3-8000.inc1.devtunnels.mshttp",
+      "b7bwr4s3-8000.inc1.devtunnels.msnull",
+      
     ],
   },
 };

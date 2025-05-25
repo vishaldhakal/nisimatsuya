@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ProductForm from '../ProductForm';
-import { addProduct, fetchCategories } from '../../../../services/productService';
+import {ProductForm} from '../../../../components/features/products';
+import { addProduct, fetchCategories } from '../../../../services';
 
 export default function AddProduct() {
   const router = useRouter();

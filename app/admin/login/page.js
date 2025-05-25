@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -32,12 +32,12 @@ export default function AdminLogin() {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Simple credential check (in a real app, use proper authentication with backend API)
-      if (formData.username === 'admin' && formData.password === 'admin123') {
+      if (formData.email === 'admin' && formData.password === 'admin123') {
         localStorage.setItem('adminAuthenticated', 'true');
-        localStorage.setItem('adminUser', formData.username);
+        localStorage.setItem('adminUser', formData.email);
         router.push('/admin');
       } else {
-        setError('Invalid username or password');
+        setError('Invalid email or password');
       }
     } catch (err) {
       setError('Login failed. Please try again.');
@@ -61,16 +61,16 @@ export default function AdminLogin() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="username">
-              Username
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+              email
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
+              id="email"
+              name="email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="Enter your username"
-              value={formData.username}
+              placeholder="Enter your email"
+              value={formData.email}
               onChange={handleInputChange}
               required
               disabled={isLoading}
@@ -107,7 +107,7 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            disabled={isLoading || !formData.username.trim() || !formData.password.trim()}
+            disabled={isLoading || !formData.email.trim() || !formData.password.trim()}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {isLoading ? (

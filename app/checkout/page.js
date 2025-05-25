@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "../../components/Cart/CartContext";
+import { useCart } from "../../components/features/cart/CartContext";
 import { CheckCircle, ArrowLeft, CreditCard, Truck, AlertCircle, PackageOpen, Calendar, CheckCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -37,7 +37,7 @@ export default function CheckoutPage() {
   ];
 
   const logoConfig = {
-    src: "/logo.svg",
+    src: "images/ui/logo.svg",
     width: 120,
     height: 40,
     alt: "Babli Store"

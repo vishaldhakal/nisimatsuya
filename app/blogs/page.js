@@ -47,12 +47,12 @@ export default function BlogsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-pink-100">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto py-12">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-pink-200 to-pink-300 py-16 rounded-xl mt-6 mb-10">
+        <div className="bg-gray-50 to-pink-300rounded-xl mt-6 ">
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4 text-pink-800">Nishimatsuya Baby Blog</h1>
+            <h1 className="text-4xl font-bold mb-4 mt-6 text-pink-800">Nishimatsuya Baby Blog</h1>
             <p className="text-xl text-pink-700">Expert advice and tips for parents and caregivers</p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function BlogsPage() {
         </div>
 
         {/* Newsletter */}
-        <div className="bg-pink-200 py-12 border-t border-pink-300 rounded-xl mb-8">
+        
           <div className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4 text-pink-800 text-center">Stay Updated with Baby Care Tips</h2>
             <p className="mb-6 text-center text-pink-700">Subscribe to our newsletter for the latest parenting advice, product updates, and exclusive offers.</p>
@@ -112,7 +112,7 @@ export default function BlogsPage() {
                 Subscribe
               </button>
             </div>
-          </div>
+         
         </div>
       </div>
     </div>

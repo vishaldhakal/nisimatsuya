@@ -1,10 +1,5 @@
-import HeroSection from "../components/HeroSection";
-import BestSellers from "../components/BestSellers";
-import CategorySection from "../components/CategorySection";
-import Testimonials from "../components/Testimonials";
-import Newsletter from "../components/Newsletter";
-import ProductsList from "../components/ProductsList";
-import ContactSection from "../components/ContactSection";
+import { HeroSection , Newsletter,Testimonials  , ContactSection } from "../components/common";
+import {BestSellers, CategorySection, ProductsList} from "../components/features/products";
   import { Suspense } from "react";
 export default function Home() {
   return (

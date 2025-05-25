@@ -1,30 +1,45 @@
-import Image from "next/image";
-import LoginForm from "../../components/form/LoginForm.jsx";
+
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext/AuthContext';
+import LoginForm  from '../../components/features/auth/LoginForm/LoginForm';
 
 export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-yellow-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Decorative header */}
-        <div className="bg-gradient-to-r from-pink-100 to-yellow-100 p-8 text-center relative">
-          <div className="absolute top-0 left-0 w-full h-full opacity-10">
-            <Image
-              src="/cats/5.webp"
-              alt="Background pattern"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-gray-800">Welcome Back!</h2>
-            <p className="text-pink-600 mt-2">Login to your account</p>
-          </div>
-        </div>
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
-        {/* Form container */}
-        <div className="p-8">
-          <LoginForm  />
-        </div>
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
+      router.push(redirectTo);
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h1 className="text-center text-3xl font-extrabold text-gray-900 mb-8">
+          Welcome Back
+        </h1>
+      </div>
+      
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <LoginForm />
       </div>
     </div>
   );

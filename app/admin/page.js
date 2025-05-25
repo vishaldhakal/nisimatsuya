@@ -8,7 +8,7 @@ import {
   OrdersChart,
   RecentOrdersTable,
   LoadingState
-} from '../../components/admin';
+} from '../../components/features/admin/index';
 import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
