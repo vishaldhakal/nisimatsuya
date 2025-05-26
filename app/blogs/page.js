@@ -11,7 +11,7 @@ export default function BlogsPage() {
       date: "May 15, 2024",
       readTime: "7 min read",
       author: "Dr. Sarah Johnson",
-      image: "/products/1.jpg",
+      image: "/images/products/1.jpg",
       category: "Baby Clothing"
     },
     {
@@ -21,7 +21,7 @@ export default function BlogsPage() {
       date: "April 28, 2024",
       readTime: "5 min read",
       author: "Nishimatsuya Team",
-      image: "/products/2.jpg",
+      image: "/images/products/2.jpg",
       category: "Baby Care"
     },
     {
@@ -31,7 +31,7 @@ export default function BlogsPage() {
       date: "April 10, 2024",
       readTime: "6 min read",
       author: "Michael Chen",
-      image: "/products/3.jpeg",
+      image: "/images/products/3.jpeg",
       category: "Baby Toys"
     },
     {
@@ -41,7 +41,7 @@ export default function BlogsPage() {
       date: "March 22, 2024",
       readTime: "4 min read",
       author: "Emma Wilson",
-      image: "/products/4.webp",
+      image: "/images/products/4.webp",
       category: "Baby Furniture"
     }
   ];

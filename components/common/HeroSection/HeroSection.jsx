@@ -82,7 +82,7 @@ export default function HeroSection() {
             <div className="relative">
               <div>
                 <Image
-                  src="/hero.png"
+                  src="/images/ui/hero.png"
                   alt="Happy baby with teddy bear"
                   width={500}
                   height={500}

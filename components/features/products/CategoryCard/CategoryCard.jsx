@@ -6,7 +6,10 @@ import Link from "next/link";
 export default function CategoryCard({ category }) {
   const [imgError, setImgError] = useState(false);
   
-  const imageSource = `${process.env.NEXT_PUBLIC_API_URL}${category?.image}` || category.image;;
+  const imageSource = category?.image
+  ? `${process.env.NEXT_PUBLIC_API_URL}${category.image}`
+  : '/images/ui/2.jpg';
+
   if (!category) {
     return (
       <div className="bg-gray-100 rounded-2xl shadow p-4 flex flex-col items-center">

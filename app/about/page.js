@@ -59,7 +59,7 @@ export default function AboutPage() {
       name: "Sarah Johnson",
       role: "Founder & CEO",
       bio: "Mother of two, passionate about providing the best for babies.",
-      image: "/team/member2.avif",
+      image: "/images/team/member2.avif",
       socials: [
         { icon: <Instagram className="w-5 h-5" />, link: "#" },
         { icon: <Twitter className="w-5 h-5" />, link: "#" },
@@ -69,7 +69,7 @@ export default function AboutPage() {
       name: "Michael Chen",
       role: "Product Director",
       bio: "15+ years of experience in baby product development.",
-      image: "/team/member1.avif",
+      image: "/images/team/member1.avif",
       socials: [
         { icon: <Instagram className="w-5 h-5" />, link: "#" },
         { icon: <Twitter className="w-5 h-5" />, link: "#" },
@@ -79,7 +79,7 @@ export default function AboutPage() {
       name: "Emma Davis",
       role: "Customer Care",
       bio: "Dedicated to ensuring every parent has a great shopping experience.",
-      image: "/team/member2.avif",
+      image: "/images/team/member2.avif",
       socials: [
         { icon: <Instagram className="w-5 h-5" />, link: "#" },
         { icon: <Twitter className="w-5 h-5" />, link: "#" },
