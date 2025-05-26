@@ -1,8 +1,9 @@
-
 "use client";
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDownIcon, XIcon } from "lucide-react";
+import UserDropdown from "./UserDropdown";
+import { useAuth } from "../../../context/AuthContext/AuthContext";
 
 export default function MobileMenu({ 
   isOpen, 
@@ -10,6 +11,7 @@ export default function MobileMenu({
   categories 
 }) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -107,21 +109,27 @@ export default function MobileMenu({
           
           {/* Auth Footer */}
           <div className="p-4 border-t flex justify-center space-x-4">
-            <Link
-              href="/login"
-              className="text-pink-700 hover:text-pink-900 font-semibold"
-              onClick={handleLinkClick}
-            >
-              Login
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link
-              href="/signup"
-              className="text-pink-700 hover:text-pink-900 font-semibold"
-              onClick={handleLinkClick}
-            >
-              Signup
-            </Link>
+            {isAuthenticated ? (
+              <UserDropdown isMobile onClose={onClose} />
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-pink-700 hover:text-pink-900 font-semibold"
+                  onClick={handleLinkClick}
+                >
+                  Login
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/signup"
+                  className="text-pink-700 hover:text-pink-900 font-semibold"
+                  onClick={handleLinkClick}
+                >
+                  Signup
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

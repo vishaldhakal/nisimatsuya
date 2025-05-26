@@ -35,6 +35,7 @@ const RelatedProductCard = ({ product }) => {
       id: product.id,
       name: product.name,
       image: product.images?.[0]?.image || product.image,
+      thumbnail_image: product.thumbnail_image,
       mrp: product.market_price || product.mrp,
       price: product.price,
       perUnit: product.perUnit

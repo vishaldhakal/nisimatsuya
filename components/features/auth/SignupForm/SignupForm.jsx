@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useAuth } from '../../../../context/AuthContext/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { User, Mail, Phone, MapPin, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 const SignupForm = () => {
   const [formData, setFormData] = useState({
@@ -80,27 +80,31 @@ const SignupForm = () => {
   // Show success message if email verification is required
   if (emailVerificationRequired) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-pink-300 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-300 to-indigo-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2000"></div>
+        </div>
+        
+        <div className="relative max-w-md w-full">
+          <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-8 border border-white/20 text-center">
+            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               Check Your Email
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              We've sent a verification link to <strong>{formData.email}</strong>
+            <p className="mt-4 text-gray-600">
+              We've sent a verification link to <strong className="text-pink-600">{formData.email}</strong>
             </p>
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-gray-500">
               Please click the link in your email to activate your account.
             </p>
-            <div className="mt-6">
+            <div className="mt-8">
               <Link
                 href="/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Back to Login
               </Link>
@@ -112,125 +116,155 @@ const SignupForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+     
+
+      <div className="relative max-w-md w-full">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Create Account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-500">
             Or{' '}
             <Link
               href="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
             >
               sign in to your existing account
             </Link>
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
+        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-8 border border-white/20">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-50/80 backdrop-blur border border-red-200 rounded-xl p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700 font-medium">{error}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="first_name" className="block text-sm font-semibold text-gray-700 mb-2">
                   First Name *
                 </label>
-                <input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  required
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="First name"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-pink-400" />
+                  </div>
+                  <input
+                    id="first_name"
+                    name="first_name"
+                    type="text"
+                    required
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
+                    placeholder="First name"
+                  />
+                </div>
               </div>
               <div>
-                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="last_name" className="block text-sm font-semibold text-gray-700 mb-2">
                   Last Name *
                 </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-pink-400" />
+                  </div>
+                  <input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    required
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-pink-400" />
+                </div>
                 <input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={formData.last_name}
+                  value={formData.email}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Last name"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
+                  placeholder="your@email.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email Address *
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number
               </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Phone number"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Phone className="h-5 w-5 text-pink-400" />
+                </div>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
+                  placeholder="Phone number"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-2">
                 Address
               </label>
-              <textarea
-                id="address"
-                name="address"
-                rows={3}
-                value={formData.address}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Your address"
-              />
+              <div className="relative">
+                <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+                  <MapPin className="h-5 w-5 text-pink-400" />
+                </div>
+                <textarea
+                  id="address"
+                  name="address"
+                  rows={3}
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300 resize-none"
+                  placeholder="Your address"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password *
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-pink-400" />
+                </div>
                 <input
                   id="password"
                   name="password"
@@ -239,7 +273,7 @@ const SignupForm = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
                   placeholder="Password (min. 8 characters)"
                 />
                 <button
@@ -247,25 +281,26 @@ const SignupForm = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {showPassword ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L12 12m-3.122-3.122L12 12m0 0l3.878 3.878M12 12l6.878-6.878" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    )}
-                  </svg>
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  )}
                 </button>
               </div>
               {formData.password && formData.password.length < 8 && (
-                <p className="mt-1 text-sm text-red-600">Password must be at least 8 characters long</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">Password must be at least 8 characters long</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
                 Confirm Password *
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-pink-400" />
+                </div>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -274,7 +309,7 @@ const SignupForm = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur hover:border-pink-300"
                   placeholder="Confirm your password"
                 />
                 <button
@@ -282,57 +317,55 @@ const SignupForm = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {showConfirmPassword ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L12 12m-3.122-3.122L12 12m0 0l3.878 3.878M12 12l6.878-6.878" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    )}
-                  </svg>
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  )}
                 </button>
               </div>
               {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">Passwords do not match</p>
               )}
             </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={!isFormValid() || isRegistering}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRegistering ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating Account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </div>
+            <div>
+              <button
+                type="submit"
+                disabled={!isFormValid() || isRegistering}
+                className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 ${
+                  !isFormValid() || isRegistering
+                    ? 'bg-gray-400 cursor-not-allowed scale-100'
+                    : 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                }`}
+              >
+                {isRegistering ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Creating Account...
+                  </div>
+                ) : (
+                  'Create Account'
+                )}
+              </button>
+            </div>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              By creating an account, you agree to our{' '}
-              <Link href="/terms" className="text-indigo-600 hover:text-indigo-500">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy" className="text-indigo-600 hover:text-indigo-500">
-                Privacy Policy
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div className="text-center">
+              <p className="text-xs text-gray-500">
+                By creating an account, you agree to our{' '}
+                <Link href="/terms" className="text-pink-600 hover:text-pink-700 font-medium transition-colors duration-200">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="text-pink-600 hover:text-pink-700 font-medium transition-colors duration-200">
+                  Privacy Policy
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  );
-};
+  )}
 
-export default SignupForm;
+  export default SignupForm;

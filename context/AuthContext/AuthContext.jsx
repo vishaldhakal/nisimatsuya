@@ -1,7 +1,9 @@
+
 'use client';
 
-import { createContext, useContext, useEffect, useReducer, useState } from 'react';
+import { createContext, useContext, useEffect, useReducer } from 'react';
 import { authService } from '../../lib/auth/authService';
+import { jwtSessionManager } from '../../lib/auth/jwtSessionManager';
 
 const AUTH_ACTIONS = {
   LOGIN_START: 'LOGIN_START',
@@ -14,16 +16,20 @@ const AUTH_ACTIONS = {
   LOAD_USER: 'LOAD_USER',
   CLEAR_ERROR: 'CLEAR_ERROR',
   SET_LOADING: 'SET_LOADING',
+  TOKEN_REFRESH: 'TOKEN_REFRESH',
+  SESSION_UPDATE: 'SESSION_UPDATE',
 };
 
 const initialState = {
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: true,
   isRegistering: false,
   error: null,
   emailVerificationRequired: false,
+  sessionInfo: null,
 };
 
 const authReducer = (state, action) => {
@@ -46,10 +52,12 @@ const authReducer = (state, action) => {
         ...state,
         user: action.payload.user,
         token: action.payload.token,
+        refreshToken: action.payload.refreshToken,
         isAuthenticated: true,
         isLoading: false,
         error: null,
         emailVerificationRequired: false,
+        sessionInfo: action.payload.sessionInfo,
       };
 
     case AUTH_ACTIONS.LOGIN_FAILURE:
@@ -57,10 +65,12 @@ const authReducer = (state, action) => {
         ...state,
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
         emailVerificationRequired: false,
+        sessionInfo: null,
       };
 
     case AUTH_ACTIONS.REGISTER_START:
@@ -76,10 +86,12 @@ const authReducer = (state, action) => {
         ...state,
         user: action.payload.user || null,
         token: action.payload.token || null,
+        refreshToken: action.payload.refreshToken || null,
         isAuthenticated: !action.payload.email_verification_required,
         isRegistering: false,
         error: null,
         emailVerificationRequired: action.payload.email_verification_required || false,
+        sessionInfo: action.payload.sessionInfo,
       };
 
     case AUTH_ACTIONS.REGISTER_FAILURE:
@@ -87,10 +99,12 @@ const authReducer = (state, action) => {
         ...state,
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isRegistering: false,
         error: action.payload,
         emailVerificationRequired: false,
+        sessionInfo: null,
       };
 
     case AUTH_ACTIONS.LOGOUT:
@@ -98,11 +112,13 @@ const authReducer = (state, action) => {
         ...state,
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         isRegistering: false,
         error: null,
         emailVerificationRequired: false,
+        sessionInfo: null,
       };
 
     case AUTH_ACTIONS.LOAD_USER:
@@ -110,9 +126,25 @@ const authReducer = (state, action) => {
         ...state,
         user: action.payload.user,
         token: action.payload.token,
+        refreshToken: action.payload.refreshToken,
         isAuthenticated: true,
         isLoading: false,
         emailVerificationRequired: false,
+        sessionInfo: action.payload.sessionInfo,
+      };
+
+    case AUTH_ACTIONS.TOKEN_REFRESH:
+      return {
+        ...state,
+        token: action.payload.token,
+        refreshToken: action.payload.refreshToken,
+        sessionInfo: action.payload.sessionInfo,
+      };
+
+    case AUTH_ACTIONS.SESSION_UPDATE:
+      return {
+        ...state,
+        sessionInfo: action.payload.sessionInfo,
       };
 
     case AUTH_ACTIONS.CLEAR_ERROR:
@@ -130,51 +162,98 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [user, setUser] = useState(null);
+
+  // Helper to get session data
+  const getSessionData = () => {
+    const session = jwtSessionManager.getSession();
+    const sessionInfo = authService.getSessionInfo();
+    
+    return {
+      user: session?.user || null,
+      token: session?.accessToken || null,
+      refreshToken: session?.refreshToken || null,
+      sessionInfo
+    };
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
         
-        // Initialize axios with stored token
-        authService.initializeAxios();
+        // Initialize JWT session manager
+        jwtSessionManager.initialize();
         
-        const token = authService.getToken();
-        const user = authService.getUser();
+        const session = jwtSessionManager.getSession();
 
-        if (token && user) {
+        if (session && session.accessToken) {
           // Verify token is still valid
-          const isValid = await authService.verifyToken(token);
+          const isValid = await authService.verifyToken(session.accessToken);
           
           if (isValid) {
+            const sessionData = getSessionData();
             dispatch({
               type: AUTH_ACTIONS.LOAD_USER,
-              payload: { user, token },
+              payload: sessionData,
             });
           } else {
-            // Token is invalid, clear auth data
-            authService.clearAuthData();
-            dispatch({ type: AUTH_ACTIONS.LOGOUT });
+            // Try to refresh token
+            try {
+              await authService.refreshToken();
+              const refreshedSessionData = getSessionData();
+              dispatch({
+                type: AUTH_ACTIONS.LOAD_USER,
+                payload: refreshedSessionData,
+              });
+            } catch (refreshError) {
+              console.error('Token refresh failed during initialization:', refreshError);
+              jwtSessionManager.clearSession();
+              dispatch({ type: AUTH_ACTIONS.LOGOUT });
+            }
           }
         } else {
           dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        authService.clearAuthData();
+        jwtSessionManager.clearSession();
         dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     };
 
-    // On mount, load user from localStorage
-    const storedUser = authService.getUser();
-    if (storedUser) {
-      setUser(storedUser);
-      authService.initializeAxios();
-    }
-
     initializeAuth();
+
+    // Listen for storage changes (multi-tab synchronization)
+    const handleStorageChange = (e) => {
+      if (e.key === 'auth_session' || e.key === 'auth_token') {
+        const sessionData = getSessionData();
+        if (sessionData.user && sessionData.token) {
+          dispatch({
+            type: AUTH_ACTIONS.LOAD_USER,
+            payload: sessionData,
+          });
+        } else {
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        }
+      }
+    };
+
+    // Listen for custom session events
+    const handleSessionUpdate = () => {
+      const sessionData = getSessionData();
+      dispatch({
+        type: AUTH_ACTIONS.SESSION_UPDATE,
+        payload: sessionData,
+      });
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('jwt-session-updated', handleSessionUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jwt-session-updated', handleSessionUpdate);
+    };
   }, []);
 
   const login = async (credentials) => {
@@ -182,10 +261,11 @@ export const AuthProvider = ({ children }) => {
     
     try {
       const response = await authService.login(credentials);
+      const sessionData = getSessionData();
       
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user: response.user, token: response.token },
+        payload: sessionData,
       });
       
       return response.user;
@@ -207,10 +287,14 @@ export const AuthProvider = ({ children }) => {
     
     try {
       const response = await authService.signup(userData);
+      const sessionData = getSessionData();
       
       dispatch({
         type: AUTH_ACTIONS.REGISTER_SUCCESS,
-        payload: response,
+        payload: {
+          ...sessionData,
+          email_verification_required: response.email_verification_required,
+        },
       });
       
       return response;
@@ -237,10 +321,10 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.verifyEmail(token);
       
       if (response.user && response.token) {
-        authService.setAuthData(response.token, response.user);
+        const sessionData = getSessionData();
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
-          payload: { user: response.user, token: response.token },
+          payload: sessionData,
         });
       }
       
@@ -258,8 +342,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshToken = async () => {
+    try {
+      await authService.refreshToken();
+      const sessionData = getSessionData();
+      
+      dispatch({
+        type: AUTH_ACTIONS.TOKEN_REFRESH,
+        payload: sessionData,
+      });
+      
+      return sessionData;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      throw error;
+    }
+  };
+
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+  };
+
+  // Additional utility functions
+  const getTimeUntilExpiry = () => {
+    return authService.getTimeUntilExpiry();
+  };
+
+  const willExpireSoon = (minutes = 5) => {
+    return authService.willExpireSoon(minutes);
+  };
+
+  const updateSessionInfo = () => {
+    const sessionData = getSessionData();
+    dispatch({
+      type: AUTH_ACTIONS.SESSION_UPDATE,
+      payload: sessionData,
+    });
   };
 
   const value = {
@@ -270,6 +389,10 @@ export const AuthProvider = ({ children }) => {
     clearError,
     verifyEmail,
     resendVerificationEmail,
+    refreshToken,
+    getTimeUntilExpiry,
+    willExpireSoon,
+    updateSessionInfo,
   };
 
   return (

@@ -434,7 +434,7 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center py-3 border-b border-gray-100">
                     <div className="w-16 h-16 relative flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                      <Image src={item.image} alt={item.name} fill className="object-contain" />
+                      <Image src= {item.thumbnail_image ? `${process.env.NEXT_PUBLIC_API_URL}${item.thumbnail_image}` : '/images/ui/placeholder.png'} alt={item.name} fill className="object-contain" />
                     </div>
                     <div className="ml-4 flex-1">
                       <div className="font-medium text-sm text-gray-800">{item.name}</div>

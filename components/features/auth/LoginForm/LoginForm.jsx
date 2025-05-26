@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../context/AuthContext/AuthContext';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +12,7 @@ const LoginForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const router = useRouter();
   const { login, error: authError, clearError } = useAuth();
@@ -75,88 +76,126 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {authError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-            {authError}
-          </div>
-        )}
-        
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Mail className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="your@email.com"
-              disabled={isLoading}
-            />
-          </div>
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+
+      <div className="relative sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Welcome Back
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Sign in to your account to continue
+          </p>
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
+        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-8 border border-white/20">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {authError && (
+              <div className="bg-red-50/80 backdrop-blur border border-red-200 text-red-600 px-4 py-3 rounded-xl">
+                {authError}
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-blue-400" />
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur ${
+                    errors.email 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 hover:border-pink-300'
+                  }`}
+                  placeholder="your@email.com"
+                  disabled={isLoading}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-2 font-medium">{errors.email}</p>
+              )}
             </div>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-pink-400" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur ${
+                    errors.password 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 hover:border-pink-300'
+                  }`}
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-2 font-medium">{errors.password}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
               disabled={isLoading}
-            />
+              className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 ${
+                isLoading
+                  ? 'bg-gray-400 cursor-not-allowed scale-100'
+                  : 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Signing in...
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <a 
+                href="/signup" 
+                className="font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+              >
+                Sign up
+              </a>
+            </p>
+
           </div>
-          {errors.password && (
-            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-          )}
         </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
-            isLoading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-          } text-white`}
-        >
-          {isLoading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="/signup" className="text-blue-600 hover:text-blue-500 font-medium">
-            Sign up
-          </a>
-        </p>
       </div>
     </div>
   );

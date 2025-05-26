@@ -85,6 +85,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
       name: product.name,
       image: product.image,
       mrp: product.mrp,
+      thumbnail_image: product.thumbnail_image,
       price: product.price,
       perUnit: product.perUnit,
       

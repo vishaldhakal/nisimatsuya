@@ -4,7 +4,7 @@ import { useCart } from '../../components/features/cart/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
-
+import { useEffect } from 'react';
 export default function CartPage() {
   const { cartItems, totalItems, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
 
@@ -31,6 +31,15 @@ export default function CartPage() {
     );
   }
 
+
+
+useEffect(() => {
+  console.log("Cart Items:", cartItems);
+  cartItems.forEach((item, index) => {
+    console.log(`Item ${index + 1}: Name - ${item.name}, Image - ${item.thumbnail_image}`);
+  });
+}, [cartItems]);
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -46,11 +55,13 @@ export default function CartPage() {
                   <div key={item.id} className="flex items-center py-4 border-b last:border-b-0">
                     <div className="w-16 h-16 relative flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                       <Image 
-                        src={item.image} 
+                        src= {item.thumbnail_image ? `${process.env.NEXT_PUBLIC_API_URL}${item.thumbnail_image}` : '/images/ui/placeholder.png'}
                         alt={item.name} 
                         fill
                         className="object-contain"
                       />
+                    
+
                     </div>
                     <div className="flex-1 ml-4">
                       <div className="flex justify-between items-center">
