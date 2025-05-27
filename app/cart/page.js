@@ -1,12 +1,32 @@
 "use client";
 
 import { useCart } from '../../components/features/cart/CartContext';
+import { useAuth } from '../../context/AuthContext/AuthContext'; 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; 
 import { Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useEffect } from 'react';
+
 export default function CartPage() {
   const { cartItems, totalItems, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const router = useRouter(); 
+
+  // Handle place order click
+  const handlePlaceOrder = () => {
+    if (!isAuthenticated) {
+  
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('redirectAfterLogin', '/cart');
+      }
+     
+      router.push('/login?redirect=/cart');
+    } else {
+  
+      router.push('/checkout');
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -31,14 +51,12 @@ export default function CartPage() {
     );
   }
 
-
-
-useEffect(() => {
-  console.log("Cart Items:", cartItems);
-  cartItems.forEach((item, index) => {
-    console.log(`Item ${index + 1}: Name - ${item.name}, Image - ${item.thumbnail_image}`);
-  });
-}, [cartItems]);
+  useEffect(() => {
+    console.log("Cart Items:", cartItems);
+    cartItems.forEach((item, index) => {
+      console.log(`Item ${index + 1}: Name - ${item.name}, Image - ${item.thumbnail_image}`);
+    });
+  }, [cartItems]);
 
   return (
     <div className="min-h-screen py-12 bg-gray-50">
@@ -55,13 +73,11 @@ useEffect(() => {
                   <div key={item.id} className="flex items-center py-4 border-b last:border-b-0">
                     <div className="relative flex-shrink-0 w-16 h-16 overflow-hidden bg-gray-100 rounded-lg">
                       <Image 
-                        src= {item.thumbnail_image ? `${process.env.NEXT_PUBLIC_API_URL}${item.thumbnail_image}` : '/images/ui/placeholder.png'}
+                        src={item.thumbnail_image ? `${process.env.NEXT_PUBLIC_API_URL}${item.thumbnail_image}` : '/images/ui/placeholder.png'}
                         alt={item.name} 
                         fill
                         className="object-contain"
                       />
-                    
-
                     </div>
                     <div className="flex-1 ml-4">
                       <div className="flex items-center justify-between">
@@ -137,12 +153,15 @@ useEffect(() => {
                   ₹{(totalAmount).toLocaleString()}
                 </span>
               </div>
-              <Link
-                href="/checkout"
-                className="block w-full py-3 mb-4 font-semibold text-center text-white transition-colors duration-200 rounded-lg bg-gradient-to-r from-pink-600 to-pink-500"
+              
+              <button
+                onClick={handlePlaceOrder}
+                className="block w-full py-3 mb-4 font-semibold text-center text-white transition-colors duration-200 rounded-lg bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600"
               >
                 Place Order
-              </Link>
+              </button>
+              
+              
               
             </div>
           </div>
