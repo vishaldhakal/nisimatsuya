@@ -1,0 +1,11 @@
+export { HeroSection } from './HeroSection';
+export { ValuesSection } from './ValuesSection';
+export { StorySection } from './StorySection';
+export { TestimonialsSection } from './TestimonialsSection';
+export { TeamSection } from './TeamSection';
+export { ContactInfoSection } from './ContactInfoSection';
+export { CTASection } from './CTASection';
+export { SectionHeading } from './SectionHeading';
+export { TeamMemberCard } from './TeamMemberCard';
+export { ValueCard } from './ValueCard';
+export { ContactCard } from './ContactCard';

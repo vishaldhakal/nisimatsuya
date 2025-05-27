@@ -118,17 +118,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen p-6 bg-gray-50">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-200 rounded shadow-sm flex items-center">
-            <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
+          <button className="flex items-center px-4 py-2 font-semibold text-gray-800 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-100">
+            <RefreshCw className="w-4 h-4 mr-2" /> Refresh Data
           </button>
         </div>
         
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Total Products"
             value={stats.totalProducts}
@@ -168,14 +168,14 @@ export default function AdminDashboard() {
         </div>
         
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ml-2 mb-8">
-          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-medium mb-4">Sales Overview</h3>
+        <div className="grid grid-cols-1 gap-6 mb-8 ml-2 lg:grid-cols-3">
+          <div className="p-6 bg-white shadow-sm lg:col-span-2 rounded-xl">
+            <h3 className="mb-4 text-lg font-medium">Sales Overview</h3>
             <SalesChart data={salesData} />
           </div>
           
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-medium mb-4">Order Statistics</h3>
+          <div className="p-6 bg-white shadow-sm rounded-xl">
+            <h3 className="mb-4 text-lg font-medium">Order Statistics</h3>
             <OrdersChart data={salesData} />
           </div>
         </div>

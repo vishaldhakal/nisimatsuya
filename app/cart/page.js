@@ -127,14 +127,14 @@ useEffect(() => {
                 <span className="text-gray-900 font-medium">{totalAmount >= 499 ? 'Free' : '₹99'}</span>
               </div>
               <div className="flex justify-between mb-4">
-                <span className="text-gray-600">Tax (18% GST)</span>
-                <span className="text-gray-900 font-medium">₹{(totalAmount * 0.18).toLocaleString()}</span>
+                {/* <span className="text-gray-600">Tax (18% GST)</span>
+                <span className="text-gray-900 font-medium">₹{(totalAmount * 0.18).toLocaleString()}</span> */}
               </div>
               <div className="border-t border-gray-200 my-4"></div>
               <div className="flex justify-between mb-6">
                 <span className="text-lg font-bold text-gray-900">Total</span>
                 <span className="text-lg font-bold text-gray-900">
-                  ₹{(totalAmount + (totalAmount >= 499 ? 0 : 99) + (totalAmount * 0.18)).toLocaleString()}
+                  ₹{(totalAmount).toLocaleString()}
                 </span>
               </div>
               <Link
