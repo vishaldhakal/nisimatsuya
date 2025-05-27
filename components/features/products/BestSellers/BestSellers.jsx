@@ -1,9 +1,10 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import ProductCard from "../ProductCard/ProductCard";
-import { fetchProducts } from "../../../../services"; 
+import SkeletonCard from "../SkeletonCard/SkeletonCard"; // Adjust the import path as needed
+import { fetchProducts } from "../../../../services";
 import SectionHeader from "../../../common/SectionHeader/SectionHeader";
+
 export default function BestSellers() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +12,7 @@ export default function BestSellers() {
   useEffect(() => {
     fetchProducts()
       .then((data) => {
-        setProducts(Array.isArray(data) ? data.slice(0, 6) : []); 
+        setProducts(Array.isArray(data) ? data.slice(0, 6) : []);
         setLoading(false);
       })
       .catch(() => {
@@ -20,12 +21,19 @@ export default function BestSellers() {
       });
   }, []);
 
-  if (loading) {
+  // Show skeleton cards while loading or when no products available
+  if (loading || products.length === 0) {
     return (
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-6xl px-4 mx-auto">
           <SectionHeader title="Our Best Sellers" />
-          <div className="text-center py-12 text-gray-400">Loading...</div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Show 6 skeleton cards to match the expected layout */}
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={`skeleton-${index}`} />
+            ))}
+          </div>
+          
         </div>
       </section>
     );
@@ -33,9 +41,9 @@ export default function BestSellers() {
 
   return (
     <section className="py-16">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="px-4 mx-auto max-w-7xl">
         <SectionHeader title="Our Best Sellers" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

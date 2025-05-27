@@ -10,16 +10,16 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-sm p-6 lg:p-8 text-center">
+      <div className="min-h-screen py-12 bg-gray-50">
+        <div className="max-w-2xl px-4 mx-auto sm:px-6 lg:px-8">
+          <div className="p-6 text-center bg-white shadow-sm rounded-2xl lg:p-8">
             <div className="flex flex-col items-center justify-center py-12">
-              <ShoppingBag className="w-16 h-16 text-pink-400 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-              <p className="text-gray-600 mb-6">Looks like you haven't added any products to your cart yet.</p>
+              <ShoppingBag className="w-16 h-16 mb-4 text-pink-400" />
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Your cart is empty</h2>
+              <p className="mb-6 text-gray-600">Looks like you haven't added any products to your cart yet.</p>
               <Link 
                 href="/products" 
-                className="bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-200 flex items-center"
+                className="flex items-center px-6 py-3 font-semibold text-white transition-colors duration-200 rounded-lg bg-gradient-to-r from-pink-600 to-pink-500 hover:bg-pink-700"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Continue Shopping
@@ -41,19 +41,19 @@ useEffect(() => {
 }, [cartItems]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="min-h-screen py-12 bg-gray-50">
+      <div className="max-w-5xl px-2 mx-auto sm:px-4 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Cart Items */}
           <div className="md:col-span-2">
-            <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                Shopping Cart <span className="ml-2 text-gray-500 font-normal">({totalItems} items)</span>
+            <div className="p-6 bg-white shadow rounded-xl">
+              <h2 className="flex items-center mb-4 text-xl font-bold text-gray-900">
+                Shopping Cart <span className="ml-2 font-normal text-gray-500">({totalItems} items)</span>
               </h2>
               <div>
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center py-4 border-b last:border-b-0">
-                    <div className="w-16 h-16 relative flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <div className="relative flex-shrink-0 w-16 h-16 overflow-hidden bg-gray-100 rounded-lg">
                       <Image 
                         src= {item.thumbnail_image ? `${process.env.NEXT_PUBLIC_API_URL}${item.thumbnail_image}` : '/images/ui/placeholder.png'}
                         alt={item.name} 
@@ -64,7 +64,7 @@ useEffect(() => {
 
                     </div>
                     <div className="flex-1 ml-4">
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         <div>
                           <div className="font-semibold text-gray-900">{item.name}</div>
                           <div className="text-xs text-gray-500">
@@ -83,7 +83,7 @@ useEffect(() => {
                           >
                             -
                           </button>
-                          <span className="px-3 py-1 text-gray-800 font-semibold">{item.quantity}</span>
+                          <span className="px-3 py-1 font-semibold text-gray-800">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.name, item.quantity + 1)}
                             className="px-3 py-1 text-gray-600 hover:bg-gray-100"
@@ -105,7 +105,7 @@ useEffect(() => {
               <div className="flex justify-end mt-6">
                 <button 
                   onClick={clearCart}
-                  className="text-gray-600 font-medium flex items-center hover:text-red-600"
+                  className="flex items-center font-medium text-gray-600 hover:text-red-600"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Clear Cart
@@ -116,21 +116,21 @@ useEffect(() => {
           
           {/* Order Summary */}
           <div>
-            <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+            <div className="p-6 bg-white shadow rounded-xl">
+              <h2 className="mb-4 text-lg font-bold text-gray-900">Order Summary</h2>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900 font-medium">₹{totalAmount.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">₹{totalAmount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-600">Delivery</span>
-                <span className="text-gray-900 font-medium">{totalAmount >= 499 ? 'Free' : '₹99'}</span>
+                <span className="font-medium text-gray-900">{totalAmount >= 499 ? 'Free' : '₹99'}</span>
               </div>
               <div className="flex justify-between mb-4">
                 {/* <span className="text-gray-600">Tax (18% GST)</span>
-                <span className="text-gray-900 font-medium">₹{(totalAmount * 0.18).toLocaleString()}</span> */}
+                <span className="font-medium text-gray-900">₹{(totalAmount * 0.18).toLocaleString()}</span> */}
               </div>
-              <div className="border-t border-gray-200 my-4"></div>
+              <div className="my-4 border-t border-gray-200"></div>
               <div className="flex justify-between mb-6">
                 <span className="text-lg font-bold text-gray-900">Total</span>
                 <span className="text-lg font-bold text-gray-900">
@@ -139,7 +139,7 @@ useEffect(() => {
               </div>
               <Link
                 href="/checkout"
-                className="w-full block text-center bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 rounded-lg transition-colors duration-200 mb-4"
+                className="block w-full py-3 mb-4 font-semibold text-center text-white transition-colors duration-200 rounded-lg bg-gradient-to-r from-pink-600 to-pink-500"
               >
                 Place Order
               </Link>
