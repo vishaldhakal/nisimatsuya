@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { ArrowUpDown, Edit, Trash2, Package } from 'lucide-react';
+import { ArrowUpDown, Package } from 'lucide-react';
 import { ProductsActions } from './ProductsActions';
 import { formatPrice, getStockStatus, getCategoryName } from './productsUtils';
 
@@ -24,36 +24,36 @@ export const ProductsTable = ({
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
         <tr>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('name')}>
+          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" onClick={() => handleSort('name')}>
             <div className="flex items-center">Product {getSortIcon('name')}</div>
           </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('price')}>
+          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Category</th>
+          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" onClick={() => handleSort('price')}>
             <div className="flex items-center">Price {getSortIcon('price')}</div>
           </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('stock')}>
+          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer" onClick={() => handleSort('stock')}>
             <div className="flex items-center">Stock {getSortIcon('stock')}</div>
           </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Actions</th>
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         {products.map((product) => {
           const stockStatus = getStockStatus(product.stock);
           return (
-            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+            <tr key={product.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden">
+                  <div className="flex-shrink-0 w-10 h-10 overflow-hidden rounded-md">
                     {product.images?.length > 0 ? (
                       <img
-                        className="h-10 w-10 object-cover"
+                        className="object-cover w-10 h-10"
                         src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
                         alt={product.name}
                       />
                     ) : (
-                      <div className="h-10 w-10 bg-gray-200 flex items-center justify-center text-gray-500">
-                        <Package className="h-6 w-6" />
+                      <div className="flex items-center justify-center w-10 h-10 text-gray-500 bg-gray-200">
+                        <Package className="w-6 h-6" />
                       </div>
                     )}
                   </div>
@@ -64,19 +64,22 @@ export const ProductsTable = ({
                     >
                       {product.name}
                     </Link>
-                    {product.description && (
-                      <div className="text-xs text-gray-500 truncate max-w-xs">{product.description}</div>
-                    )}
+                   {product.description && (
+                    <div className="max-w-md text-sm leading-relaxed text-gray-600 line-clamp-2">
+                      {product.description.replace(/<[^>]*>/g, '')}
+                    </div>
+                  )}
+
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                 {getCategoryName(product.category, categories)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                 {formatPrice(product.price)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <div className="flex items-center">
                   <div className={`h-2.5 w-2.5 rounded-full bg-${stockStatus.color}-500 mr-2`}></div>
                   <span>{product.stock || 0}</span>
@@ -85,7 +88,7 @@ export const ProductsTable = ({
                   </span>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <ProductsActions 
                   productId={product.id}
                   showDeleteConfirm={showDeleteConfirm}

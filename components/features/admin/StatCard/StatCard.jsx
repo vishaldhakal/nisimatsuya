@@ -6,7 +6,8 @@ import {
   Clock, 
   DollarSign, 
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  TrendingDown
 } from 'lucide-react';
 
 export default function StatCard({ 
@@ -16,31 +17,34 @@ export default function StatCard({
   iconColor, 
   trend, 
   trendDirection,
-  isCurrency = false 
+  isCurrency = false,
+  isLoading = false 
 }) {
   // Format currency if needed
   const formattedValue = isCurrency 
-    ? Number(value).toLocaleString(undefined, { 
+    ? new Intl.NumberFormat('en-US', { 
         style: 'currency', 
         currency: 'USD',
         minimumFractionDigits: 2, 
         maximumFractionDigits: 2 
-      })
-    : value;
+      }).format(value || 0)
+    : (value || 0).toLocaleString();
 
   // Get the appropriate icon component
   const IconComponent = () => {
+    const iconProps = "w-6 h-6";
+    
     switch(icon) {
       case 'Package':
-        return <Package className="w-6 h-6 text-blue-500" />;
+        return <Package className={`${iconProps} text-blue-500`} />;
       case 'ShoppingCart':
-        return <ShoppingCart className="w-6 h-6 text-purple-500" />;
+        return <ShoppingCart className={`${iconProps} text-purple-500`} />;
       case 'Clock':
-        return <Clock className="w-6 h-6 text-yellow-500" />;
+        return <Clock className={`${iconProps} text-yellow-500`} />;
       case 'DollarSign':
-        return <DollarSign className="w-6 h-6 text-green-500" />;
+        return <DollarSign className={`${iconProps} text-green-500`} />;
       default:
-        return <Package className="w-6 h-6 text-blue-500" />;
+        return <Package className={`${iconProps} text-blue-500`} />;
     }
   };
   
@@ -55,34 +59,32 @@ export default function StatCard({
     }
   };
   
-  // Get trend indicator
-  const TrendIndicator = () => {
-    if (trendDirection === 'up') {
-      return (
-        <div className="text-sm text-green-600 flex items-center">
-          <TrendingUp className="w-4 h-4 mr-1" /> {trend}
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="p-6 bg-white shadow-sm rounded-xl animate-pulse">
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-24 h-4 bg-gray-200 rounded"></div>
+          <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
         </div>
-      );
-    } else if (trendDirection === 'alert') {
-      return (
-        <div className="text-sm text-yellow-600 flex items-center">
-          <AlertCircle className="w-4 h-4 mr-1" /> {trend}
-        </div>
-      );
-    }
-    return null;
-  };
+        <div className="w-20 h-8 mb-2 bg-gray-200 rounded"></div>
+        <div className="w-32 h-3 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md">
+    <div className="p-6 transition-all bg-white shadow-sm rounded-xl hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div className="font-medium text-gray-500">{title}</div>
-        <div className={`p-2 ${getIconBgColor()} rounded-lg`}>
+        <div className={`p-2 ${getIconBgColor()} rounded-lg transition-colors`}>
           <IconComponent />
         </div>
       </div>
-      <div className="text-3xl font-bold mb-1">{formattedValue}</div>
-      <TrendIndicator />
+      <div className="mb-2 text-3xl font-bold text-gray-900">
+        {formattedValue}
+      </div>
+      
     </div>
   );
 }

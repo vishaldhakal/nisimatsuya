@@ -2,9 +2,9 @@
 
 export default function ProductPriceSection({ formData, handleChange }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Market Price</label>
+        <label className="block mb-1 text-sm font-medium text-gray-700">Market Price</label>
         <input
           type="number"
           step="0.01"
@@ -12,12 +12,12 @@ export default function ProductPriceSection({ formData, handleChange }) {
           name="market_price"
           value={formData.market_price}
           onChange={handleChange}
-          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="0.00"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           Selling Price <span className="text-red-500">*</span>
         </label>
         <input
@@ -27,13 +27,13 @@ export default function ProductPriceSection({ formData, handleChange }) {
           name="price"
           value={formData.price}
           onChange={handleChange}
-          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="0.00"
           required
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+        <label className="block mb-1 text-sm font-medium text-gray-700">Discount (%)</label>
         <input
           type="number"
           step="0.01"
@@ -42,7 +42,7 @@ export default function ProductPriceSection({ formData, handleChange }) {
           name="discount"
           value={formData.discount}
           onChange={handleChange}
-          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="0.00"
         />
       </div>

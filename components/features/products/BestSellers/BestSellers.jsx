@@ -12,7 +12,7 @@ export default function BestSellers() {
   useEffect(() => {
     fetchProducts()
       .then((data) => {
-        setProducts(Array.isArray(data) ? data.slice(0, 6) : []);
+        setProducts(Array.isArray(data) ? data.slice(0, 4) : []);
         setLoading(false);
       })
       .catch(() => {

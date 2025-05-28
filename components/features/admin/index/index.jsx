@@ -4,3 +4,4 @@ export { default as SalesChart } from '../SalesChart/SalesChart';
 export { default as OrdersChart } from '../OrdersChart/OrdersChart';
 export { default as RecentOrdersTable } from '../RecentOrdersTable/RecentOrdersTable';
 export { default as LoadingState } from '../LoadingState/LoadingState';
+export { default as RevenueChart}  from '../RevenueChart/RevenueChart';

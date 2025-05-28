@@ -13,7 +13,7 @@ const HeartIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-300 hover:text-pink-400 transition-colors duration-200"
+    className="w-5 h-5 text-gray-300 transition-colors duration-200 hover:text-pink-400"
   >
     <path
       strokeLinecap="round"
@@ -104,7 +104,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={() => setShowMobileCartButton(true)}
     >
-      <div className="absolute inset-0 rounded-3xl border-2 border-pink-100"></div>
+      <div className="absolute inset-0 border-2 border-pink-100 rounded-3xl"></div>
       
       {badge && (
         <div className={`absolute z-10 top-3 left-3 px-2 py-1 text-xs font-bold rounded-full 
@@ -122,8 +122,8 @@ const ProductCard = ({ product, isSpecial = false }) => {
 
       
       <Link href={`/products/${product.slug}`} className="block h-full">
-        <div className="relative bg-white h-full flex flex-col p-4">
-          <div className="relative flex-1 flex items-center justify-center mb-3 p-2">
+        <div className="relative flex flex-col h-full p-4 bg-white">
+          <div className="relative flex items-center justify-center flex-1 p-2 mb-3">
            <Image
               src={ `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
               alt={product.name}
@@ -142,7 +142,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
               >
                 <button
                   onClick={handleAddToCart}
-                  className="bg-white text-pink-600 rounded-full p-3 shadow-lg transform transition-transform duration-300 hover:scale-110"
+                  className="p-3 text-pink-600 transition-transform duration-300 transform bg-white rounded-full shadow-lg hover:scale-110"
                 >
                   <ShoppingCart size={20} />
                 </button>
@@ -155,7 +155,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
               {product.name}
             </h3>
             
-            <div className="mt-2 flex flex-col">
+            <div className="flex flex-col mt-2">
               {product.mrp > product.price && (
                 <span className="text-xs text-gray-400 line-through">
                   ₹{product.mrp.toLocaleString()}
@@ -176,7 +176,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
           {isMobile && (
             <button
               onClick={handleAddToCart}
-              className="mt-3 w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-medium rounded-xl py-2 px-4 flex items-center justify-center gap-2"
+              className="flex items-center justify-center w-full gap-2 px-4 py-2 mt-3 font-medium text-white bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl"
             >
               <ShoppingCart size={16} />
               Add to Cart
@@ -185,14 +185,14 @@ const ProductCard = ({ product, isSpecial = false }) => {
           
           {/* Confirmation after adding to cart */}
           {isAddedToCart && (
-            <div className="absolute bottom-0 left-0 right-0 bg-green-50 px-3 py-3 text-center flex flex-col gap-2">
-              <div className="text-green-800 text-xs">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-2 px-3 py-3 text-center bg-green-50">
+              <div className="text-xs text-green-800">
                 Added to cart ✓
               </div>
               <Link 
                 href="/cart" 
                 onClick={(e) => e.stopPropagation()} 
-                className="bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg py-2 transition-colors duration-200"
+                className="py-2 text-xs font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700"
               >
                 Proceed to Checkout
               </Link>
@@ -206,7 +206,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
         <div className={`fixed bottom-6 left-0 right-0 flex justify-center z-50 transition-opacity duration-300 ${showMobileCartButton ? 'opacity-100' : 'opacity-0'}`}>
           <button
             onClick={handleAddToCart}
-            className="bg-gradient-to-r from-pink-600 to-pink-500 text-white font-medium rounded-full py-3 px-6 shadow-lg flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 font-medium text-white rounded-full shadow-lg bg-gradient-to-r from-pink-600 to-pink-500"
           >
             <ShoppingCart size={20} />
             Add to Cart

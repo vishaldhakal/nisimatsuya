@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
-import {ProductForm} from '../../../../components/features/products';
+import { toast } from 'react-hot-toast';
+import { ProductForm } from '../../../../components/features/products';
 import { editProduct, fetchProduct, fetchCategories } from '../../../../services';
 
 function EditProductPage() {
@@ -11,17 +12,34 @@ function EditProductPage() {
   const id = searchParams.get("id");
   const [initialData, setInitialData] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    fetchCategories()
-      .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]));
+    const loadCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        toast.error('Failed to load categories. Please refresh the page.');
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
   }, []);
 
   useEffect(() => {
-    if (!id) return;
-    fetchProduct(id)
-      .then((data) => {
+    if (!id) {
+      setDataLoading(false);
+      return;
+    }
+
+    const loadProduct = async () => {
+      try {
+        const data = await fetchProduct(id);
+        
         // Normalize images for ProductForm
         const images = Array.isArray(data.images)
           ? data.images.map(img =>
@@ -30,27 +48,124 @@ function EditProductPage() {
                 : img
             )
           : [];
-        setInitialData({ ...data, images });
-      })
-      .catch(() => setInitialData(null));
+          
+        setInitialData({ 
+          ...data, 
+          images,
+          thumbnail_image: data.thumbnail_image || null,
+          meta_title: data.meta_title || '',
+          meta_description: data.meta_description || ''
+        });
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+        toast.error('Failed to load product data. Please try again.');
+        setInitialData(null);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    loadProduct();
   }, [id]);
 
   const handleSubmit = async (formData) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    
     try {
       await editProduct(id, formData);
-      alert("Product updated successfully!");
+      toast.success("Product updated successfully!");
       router.push("/admin/products");
     } catch (error) {
-      alert(error.message || "Something went wrong!");
+      console.error('Edit product error:', error);
+      
+      // Handle specific error cases
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle validation errors
+        if (errorData.non_field_errors) {
+          errorData.non_field_errors.forEach(err => {
+            if (err.includes('name, category must make a unique set')) {
+              toast.error('A product with this name already exists in the selected category. Please choose a different name or category.');
+            } else {
+              toast.error(err);
+            }
+          });
+        } else if (errorData.name) {
+          toast.error(`Name: ${Array.isArray(errorData.name) ? errorData.name.join(', ') : errorData.name}`);
+        } else if (errorData.category) {
+          toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category.join(', ') : errorData.category}`);
+        } else if (errorData.price) {
+          toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price.join(', ') : errorData.price}`);
+        } else if (errorData.detail) {
+          toast.error(errorData.detail);
+        } else {
+          toast.error('Failed to update product. Please check your input and try again.');
+        }
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
+    if (isLoading) {
+      toast.error('Please wait for the current operation to complete.');
+      return;
+    }
     router.push("/admin/products");
   };
 
-  if (!id) return <div className="p-6 text-center">Invalid product id.</div>;
-  if (!initialData) return <div className="p-6 text-center">Loading...</div>;
+  if (!id) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">Invalid Product ID</h2>
+          <p className="mb-4 text-gray-600">No product ID was provided.</p>
+          <button
+            onClick={() => router.push('/admin/products')}
+            className="px-4 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (dataLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading product data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!initialData) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">Product Not Found</h2>
+          <p className="mb-4 text-gray-600">The requested product could not be loaded.</p>
+          <button
+            onClick={() => router.push('/admin/products')}
+            className="px-4 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ProductForm 
@@ -59,17 +174,18 @@ function EditProductPage() {
       onCancel={handleCancel}
       isEditMode={true}
       categories={categories}
+      isLoading={isLoading}
     />
   );
 }
 
 function LoadingFallback() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl p-6 mx-auto">
       <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-        <div className="h-64 bg-gray-200 rounded mb-6"></div>
-        <div className="h-12 bg-gray-200 rounded w-1/3 mx-auto"></div>
+        <div className="w-1/4 h-8 mb-6 bg-gray-200 rounded"></div>
+        <div className="h-64 mb-6 bg-gray-200 rounded"></div>
+        <div className="w-1/3 h-12 mx-auto bg-gray-200 rounded"></div>
       </div>
     </div>
   );

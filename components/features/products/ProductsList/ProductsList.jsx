@@ -11,7 +11,7 @@ export default function ProductsList() {
   useEffect(() => {
     fetchProducts()
       .then(data => {
-        setProducts(Array.isArray(data) ? data : []);
+        setProducts(Array.isArray(data) ? data.slice(0,6) : []);
         setLoading(false);
       })
       .catch(() => {

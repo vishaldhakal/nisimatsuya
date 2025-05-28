@@ -87,19 +87,38 @@ export const fetchProduct = fetchProductById;
 
 export const addProduct = async (data) => {
   try {
-    const { images, id, ...productData } = data;
+    const { images, id, meta_title, meta_description, thumbnail_image, ...productData } = data;
     const cleanData = cleanProductData(productData);
-    if (hasValidImages(images)) {
+
+    // Add meta fields
+    if (meta_title !== undefined) cleanData.meta_title = meta_title;
+    if (meta_description !== undefined) cleanData.meta_description = meta_description;
+
+    // Always use FormData if thumbnail_image or images exist
+    if ((images && images.length > 0) || thumbnail_image) {
       const formData = new FormData();
       Object.entries(cleanData).forEach(([key, value]) => {
         if (value !== null && value !== undefined)
           formData.append(key === 'category' ? 'category_id' : key, value);
       });
       appendImagesToFormData(formData, images);
+
+      // Handle thumbnail_image
+      if (thumbnail_image) {
+        if (thumbnail_image.file) {
+          formData.append('thumbnail_image', thumbnail_image.file);
+        } else if (thumbnail_image.image && thumbnail_image.image.startsWith('data:')) {
+          const [meta, base64] = thumbnail_image.image.split(',');
+          const mime = meta.split(':')[1].split(';')[0];
+          formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail_image.name || 'thumbnail.jpg');
+        }
+      }
+
       return (await axiosInstance.post('/api/products/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000,
       })).data;
     } else {
+      // Only use JSON if there are no images and no thumbnail_image
       const jsonData = { ...cleanData, category_id: cleanData.category };
       delete jsonData.category;
       return (await axiosInstance.post('/api/products/', jsonData, {
@@ -111,26 +130,51 @@ export const addProduct = async (data) => {
 
 export const editProduct = async (id, data) => {
   try {
-    const { images, ...productData } = data;
+    const { images, meta_title, meta_description, thumbnail_image, ...productData } = data;
     const cleanData = cleanProductData(productData);
     const product = await fetchProductById(id);
     const slug = product.slug;
-    if (hasValidImages(images)) {
+
+    // Add meta fields
+    if (meta_title !== undefined) cleanData.meta_title = meta_title;
+    if (meta_description !== undefined) cleanData.meta_description = meta_description;
+
+    if (hasValidImages(images) || thumbnail_image) {
       const formData = new FormData();
       Object.entries(cleanData).forEach(([key, value]) => {
         if (value !== null && value !== undefined)
           formData.append(key, String(value));
       });
       appendImagesToFormData(formData, images);
+
+      // Handle thumbnail_image
+      if (thumbnail_image) {
+        if (thumbnail_image.file) {
+          formData.append('thumbnail_image', thumbnail_image.file);
+        } else if (thumbnail_image.image && thumbnail_image.image.startsWith('data:')) {
+          const [meta, base64] = thumbnail_image.image.split(',');
+          const mime = meta.split(':')[1].split(';')[0];
+          formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail_image.name || 'thumbnail.jpg');
+        }
+      }
+
       return (await axiosInstance.put(`/api/products/${slug}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000,
       })).data;
     } else {
-      return (await axiosInstance.put(`/api/products/${slug}/`, cleanData, {
+      const jsonData = { ...cleanData, category_id: cleanData.category };
+      delete jsonData.category;
+      if (thumbnail_image && thumbnail_image.image) {
+        jsonData.thumbnail_image = thumbnail_image.image;
+      }
+      return (await axiosInstance.put(`/api/products/${slug}/`, jsonData, {
         headers: { 'Content-Type': 'application/json' }
       })).data;
     }
-  } catch (e) { console.error('Error editing product:', e); handleError(e, 'Failed to edit product'); }
+  } catch (e) { 
+    console.error('Error editing product:', e); 
+    handleError(e, 'Failed to edit product'); 
+  }
 };
 
 export const addProductWithoutImages = async (data) => {

@@ -25,7 +25,8 @@ const MyOrders = () => {
     status: 'all',
     search: '',
     page: 1,
-    page_size: 5
+    page_size: 5,
+    ordering: '-created_at' // Add ordering parameter for descending order
   });
   const [statusCounts, setStatusCounts] = useState({});
   const [statusCountsLoaded, setStatusCountsLoaded] = useState(false);
@@ -46,7 +47,12 @@ const MyOrders = () => {
       const response = await fetchMyOrders(filters);
       
       if (response.results) {
-        setOrders(response.results);
+        // Sort orders by created_at in descending order (most recent first)
+        const sortedOrders = response.results.sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
+        
+        setOrders(sortedOrders);
         setPagination({
           count: response.count,
           next: response.next,
@@ -55,9 +61,17 @@ const MyOrders = () => {
           totalPages: Math.ceil(response.count / filters.page_size)
         });
       } else {
-        setOrders(Array.isArray(response) ? response : []);
+        // Handle case where response is a direct array
+        const ordersArray = Array.isArray(response) ? response : [];
+        
+        // Sort orders by created_at in descending order (most recent first)
+        const sortedOrders = ordersArray.sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
+        
+        setOrders(sortedOrders);
         setPagination({
-          count: Array.isArray(response) ? response.length : 0,
+          count: sortedOrders.length,
           next: null,
           previous: null,
           currentPage: 1,

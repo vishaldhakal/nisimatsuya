@@ -1,15 +1,16 @@
 "use client";
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import {
   StatCard,
-  SalesChart,
-  OrdersChart,
-  RecentOrdersTable,
-  LoadingState
+  LoadingState,
+  RevenueChart,
+  RecentOrdersTable
 } from '../../components/features/admin/index';
+
 import { useRouter } from 'next/navigation';
+import dashboardService from '../../services/api/dashboardService';
+import { fetchOrders } from '../../services/api/orderService';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -19,98 +20,103 @@ export default function AdminDashboard() {
     pendingOrders: 0,
     revenue: 0
   });
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [salesData, setSalesData] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]); // Add state for recent orders
   const [isLoading, setIsLoading] = useState(true);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(true); // Separate loading state for orders
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
     if (!isAuthenticated) {
       router.push('/admin/login');
+      return;
     }
+    fetchDashboardData();
   }, [router]);
 
-  useEffect(() => {
-    // Simulate loading delay for data fetching
-    setTimeout(() => {
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-
-      const revenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
-      const pendingOrders = orders.filter(order => order.status === 'pending').length;
-      const completedOrders = orders.filter(order => order.status === 'completed').length;
-
-      setStats({
-        totalProducts: products.length,
-        totalOrders: orders.length,
-        pendingOrders,
-        completedOrders,
-        revenue
-      });
-
-      const sortedOrders = orders
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-      setRecentOrders(sortedOrders);
+  /**
+   * Fetch both dashboard statistics and recent orders
+   */
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
       
-      // Generate mock sales data for chart visualization
-      const mockSalesData = generateMockSalesData(orders);
-      setSalesData(mockSalesData);
-      
-      setIsLoading(false);
-    }, 800);
-  }, []);
+      // Fetch dashboard stats and recent orders concurrently
+      const [statsResponse, ordersResponse] = await Promise.allSettled([
+        fetchDashboardStats(),
+        fetchRecentOrders()
+      ]);
 
-  // Function to generate mock sales data based on available orders
-  const generateMockSalesData = (orders) => {
-    // Create a map to store sales by date
-    const salesByDate = {};
-    const ordersByDate = {};
-    
-    // Get last 7 days
-    const dates = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      dates.push(dateString);
-      salesByDate[dateString] = 0;
-      ordersByDate[dateString] = 0;
-    }
-    
-    // Default values for today based on the actual orders data we have
-    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    // Use actual data for today
-    const totalAmount = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
-    const totalOrderCount = orders.length;
-    
-    salesByDate[today] = totalAmount;
-    ordersByDate[today] = totalOrderCount;
-    
-    // Add some realistic data for previous days to show trends
-    dates.forEach((date, index) => {
-      if (date !== today) {
-        // Create some variation in historical data
-        const factor = 0.7 + Math.random() * 0.5; // Random factor between 0.7 and 1.2
-        const dayFactor = 1 - (index * 0.05); // Slight downward trend as we go back in time
-        
-        salesByDate[date] = index === dates.length - 2 ? 
-          totalAmount * 0.9 * dayFactor : // Yesterday was slightly less
-          Math.max(100, totalAmount * factor * dayFactor);
-          
-        ordersByDate[date] = index === dates.length - 2 ? 
-          Math.max(1, Math.floor(totalOrderCount * 0.9 * dayFactor)) : // Yesterday was slightly less
-          Math.max(1, Math.floor(totalOrderCount * factor * dayFactor));
+      // Handle stats response
+      if (statsResponse.status === 'rejected') {
+        console.error('Stats fetch failed:', statsResponse.reason);
+        setError('Failed to load dashboard statistics');
       }
-    });
-    
-    // Convert to array format for Recharts
-    return dates.map(date => ({
-      date,
-      sales: salesByDate[date],
-      orders: ordersByDate[date]
-    }));
+
+      // Handle orders response
+      if (ordersResponse.status === 'rejected') {
+        console.error('Orders fetch failed:', ordersResponse.reason);
+        // Don't set main error for orders failure, just log it
+      }
+
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+      setError('Failed to load dashboard data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Fetch dashboard statistics from API
+   */
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await dashboardService.getDashboardStats();
+      if (response.success) {
+        setStats({
+          totalProducts: response.data.total_products,
+          totalOrders: response.data.total_orders,
+          pendingOrders: response.data.pending_orders,
+          revenue: response.data.total_revenue
+        });
+      } else {
+        throw new Error(response.error);
+      }
+    } catch (err) {
+      console.error('Dashboard stats fetch error:', err);
+      throw err;
+    }
+  };
+
+  /**
+   * Fetch recent 5 orders
+   */
+  const fetchRecentOrders = async () => {
+    try {
+      setIsOrdersLoading(true);
+      const response = await fetchOrders({
+        page: 1,
+        page_size: 5 // Fetch only 5 recent orders
+      });
+      
+      // Handle both paginated and non-paginated responses
+      const orders = response.results || response.data || response;
+      setRecentOrders(Array.isArray(orders) ? orders : []);
+    } catch (err) {
+      console.error('Recent orders fetch error:', err);
+      setRecentOrders([]); // Set empty array on error
+    } finally {
+      setIsOrdersLoading(false);
+    }
+  };
+
+  /**
+   * Refresh data handler
+   */
+  const handleRefresh = () => {
+    fetchDashboardData();
   };
 
   if (isLoading) {
@@ -120,68 +126,77 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <div className="mx-auto max-w-7xl">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <button className="flex items-center px-4 py-2 font-semibold text-gray-800 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-100">
-            <RefreshCw className="w-4 h-4 mr-2" /> Refresh Data
+          <button
+            onClick={handleRefresh}
+            className="flex items-center px-4 py-2 font-semibold text-gray-800 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-100 disabled:opacity-50"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
         </div>
-        
+
+        {/* Error Alert */}
+        {error && (
+          <div className="p-4 mb-6 text-red-700 bg-red-100 border border-red-200 rounded-lg">
+            <p className="font-medium">Error loading dashboard data</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Stat Cards */}
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard 
+          <StatCard
             title="Total Products"
             value={stats.totalProducts}
             icon="Package"
             iconColor="blue"
-            trend="+2.5% from last month"
-            trendDirection="up"
           />
-          
-          <StatCard 
+          <StatCard
             title="Total Orders"
             value={stats.totalOrders}
             icon="ShoppingCart"
             iconColor="purple"
-            trend="+5.2% from last month"
-            trendDirection="up"
           />
-          
-          <StatCard 
+          <StatCard
             title="Pending Orders"
             value={stats.pendingOrders}
             icon="Clock"
             iconColor="yellow"
-            trend="Needs attention"
-            trendDirection="alert"
           />
-          
-          <StatCard 
+          <StatCard
             title="Total Revenue"
             value={stats.revenue}
             icon="DollarSign"
             iconColor="green"
-            trend="+8.1% from last month"
-            trendDirection="up"
             isCurrency={true}
           />
         </div>
-        
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 gap-6 mb-8 ml-2 lg:grid-cols-3">
-          <div className="p-6 bg-white shadow-sm lg:col-span-2 rounded-xl">
-            <h3 className="mb-4 text-lg font-medium">Sales Overview</h3>
-            <SalesChart data={salesData} />
-          </div>
-          
-          <div className="p-6 bg-white shadow-sm rounded-xl">
-            <h3 className="mb-4 text-lg font-medium">Order Statistics</h3>
-            <OrdersChart data={salesData} />
-          </div>
+
+        {/* Revenue Chart Section */}
+        <div className="mb-8">
+          <RevenueChart />
         </div>
-        
-        {/* Recent Orders */}
-        <RecentOrdersTable orders={recentOrders} />
+
+        {/* Recent Orders Section */}
+        <div className="mb-8">
+          {isOrdersLoading ? (
+            <div className="p-6 bg-white shadow-sm rounded-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-medium">Recent Orders</h3>
+              </div>
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="w-6 h-6 text-gray-400 animate-spin" />
+                <span className="ml-2 text-gray-500">Loading orders...</span>
+              </div>
+            </div>
+          ) : (
+            <RecentOrdersTable orders={recentOrders} />
+          )}
+        </div>
       </div>
     </div>
   );
