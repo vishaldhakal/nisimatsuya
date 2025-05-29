@@ -1,29 +1,79 @@
 "use client";
-
+import React, { useState, useEffect } from 'react';
+import { fetchOrders, updateOrderStatus as updateOrderStatusAPI } from '../../../../services/api/orderService';
+import {
+  OrdersTable,
+  ErrorAlert,
+  EmptyState,
+  LoadingSpinner
+} from '../../../../app/admin/orders/components'; 
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
 
-export default function RecentOrdersTable({ orders }) {
+export default function RecentOrdersDisplay() {
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [sortColumn, setSortColumn] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [isUpdating, setIsUpdating] = useState(null);
+  const [expandedOrder, setExpandedOrder] = useState(null);
 
-  const formatCurrency = (amount) => {
-    return Number(amount).toLocaleString(undefined, { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    });
+  const loadRecentOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use the same parameters as AdminOrders but limit to 5 most recent
+      const params = {
+        page: 1,
+        page_size: 5, // Only get 5 orders
+        search: '', // No search for recent orders view
+        status: undefined, // Show all statuses
+        sortBy: sortColumn,
+        sortOrder: sortDirection
+      };
+    
+      const ordersData = await fetchOrders(params);
+      setOrders(ordersData.results || []);
+    } catch (error) {
+      console.error("Failed to load recent orders:", error);
+      setError(error.message || 'Failed to load recent orders');
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getStatusColor = (status) => {
-    switch(status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
+  useEffect(() => {
+    loadRecentOrders();
+  }, [sortColumn, sortDirection]);
+
+  const updateOrderStatus = async (orderNumber, status) => {
+    setIsUpdating(orderNumber);
+    setError(null);
+
+    try {
+      const updatedOrder = await updateOrderStatusAPI(orderNumber, status);
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.order_number === orderNumber ? { ...order, status: updatedOrder.status } : order
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      setError(`Failed to update order status: ${error.message}`);
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
     }
   };
 
@@ -38,152 +88,31 @@ export default function RecentOrdersTable({ orders }) {
           </button>
         </Link>
       </div>
-      
-      {orders && orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-gray-500 sm:py-12">
-          <ShoppingCart className="w-8 h-8 mb-2 text-gray-400 sm:w-12 sm:h-12 sm:mb-3" />
-          <p className="text-sm sm:text-base">No recent orders found</p>
-          <p className="mt-1 text-xs sm:text-sm">New orders will appear here</p>
-        </div>
+
+      {error && <ErrorAlert error={error} />}
+
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : orders.length === 0 ? (
+        <EmptyState searchQuery="" filterStatus="all" />
       ) : (
-        <>
-          {/* Desktop Table View - Hidden on mobile */}
-          <div className="hidden overflow-x-auto md:block">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase lg:px-6">
-                    Order ID
-                  </th>
-                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase lg:px-6">
-                    Customer
-                  </th>
-                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase lg:px-6">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase lg:px-6">
-                    Date
-                  </th>
-                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase lg:px-6">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders && orders.map((order, idx) => (
-                  <tr key={order.id || idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900 lg:px-6 whitespace-nowrap">
-                      #{order.order_number || `00${idx + 1}`}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 lg:px-6 whitespace-nowrap">
-                      {order.full_name || 'Customer ' + (idx + 1)}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-900 lg:px-6 whitespace-nowrap">
-                      {formatCurrency(order.total_amount)}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 lg:px-6 whitespace-nowrap">
-                      {new Date(order.createdAt || new Date()).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-4 lg:px-6 whitespace-nowrap">
-                      <span className={`px-2 lg:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View - Visible only on mobile/tablet */}
-          <div className="block space-y-3 md:hidden">
-            {orders && orders.map((order, idx) => (
-              <div key={order.id || idx} className="p-3 border border-gray-200 rounded-lg bg-gray-50 sm:p-4">
-                {/* Order ID and Status Row */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-medium text-gray-900">
-                    #{order.order_number || `00${idx + 1}`}
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </span>
-                </div>
-                
-                {/* Customer Name */}
-                <div className="mb-2">
-                  <span className="text-xs tracking-wide text-gray-500 uppercase">Customer</span>
-                  <p className="text-sm font-medium text-gray-900">
-                    {order.full_name || 'Customer ' + (idx + 1)}
-                  </p>
-                </div>
-                
-                {/* Amount and Date Row */}
-                <div className="flex items-center justify-between text-sm">
-                  <div>
-                    <span className="block text-xs tracking-wide text-gray-500 uppercase">Amount</span>
-                    <span className="font-medium text-gray-900">
-                      {formatCurrency(order.total_amount)}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-xs tracking-wide text-gray-500 uppercase">Date</span>
-                    <span className="text-gray-600">
-                      {new Date(order.createdAt || new Date()).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tablet Horizontal Scroll Table - Visible only on small tablets */}
-          <div className="hidden overflow-x-auto sm:block md:hidden">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                    Order ID
-                  </th>
-                  <th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                    Customer
-                  </th>
-                  <th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                    Amount
-                  </th>
-                  <th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                    Date
-                  </th>
-                  <th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders && orders.map((order, idx) => (
-                  <tr key={order.id || idx} className="hover:bg-gray-50">
-                    <td className="px-3 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                      #{order.order_number || `00${idx + 1}`}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-500 whitespace-nowrap">
-                      {order.full_name || 'Customer ' + (idx + 1)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">
-                      {formatCurrency(order.total_amount)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-500 whitespace-nowrap">
-                      {new Date(order.createdAt || new Date()).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+        <OrdersTable
+          orders={orders}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          expandedOrder={expandedOrder}
+          onToggleExpand={(orderNumber) => setExpandedOrder(expandedOrder === orderNumber ? null : orderNumber)}
+          onUpdateStatus={updateOrderStatus}
+          isUpdating={isUpdating}
+        />
+      )}
+      
+      {/* Footer showing count */}
+      {!isLoading && orders.length > 0 && (
+        <div className="mt-4 text-xs text-center text-gray-500">
+          Showing {orders.length} most recent order{orders.length !== 1 ? 's' : ''}
+        </div>
       )}
     </div>
   );

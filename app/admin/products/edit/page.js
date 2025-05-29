@@ -30,6 +30,63 @@ function EditProductPage() {
     loadCategories();
   }, []);
 
+  // Helper function to normalize image data
+  const normalizeImageData = (images) => {
+    if (!Array.isArray(images)) return [];
+    
+    return images.map((img, index) => {
+      if (typeof img === 'string') {
+        // If it's a string URL, create a proper object
+        return {
+          name: img.split('/').pop() || `image_${index}`,
+          image: img, // Keep the original URL
+          type: 'image/jpeg', // Default type
+          size: null, // Unknown size for existing images
+          isExisting: true // Flag to identify existing vs new images
+        };
+      } else if (img && typeof img === 'object') {
+        // If it's already an object, ensure it has the required properties
+        return {
+          name: img.name || img.filename || `image_${index}`,
+          image: img.image || img.url || img.src || img,
+          type: img.type || 'image/jpeg',
+          size: img.size || null,
+          file: img.file || null,
+          isExisting: !img.file // Flag to identify existing vs new images
+        };
+      }
+      return null;
+    }).filter(Boolean); // Remove any null entries
+  };
+
+  // Helper function to normalize thumbnail data
+  const normalizeThumbnailData = (thumbnail) => {
+    if (!thumbnail) return null;
+    
+    if (typeof thumbnail === 'string') {
+      // If it's a string URL, create a proper object
+      return {
+        name: thumbnail.split('/').pop() || 'thumbnail',
+        image: thumbnail, // Keep the original URL
+        type: 'image/jpeg', // Default type
+        size: null, // Unknown size for existing images
+        isExisting: true // Flag to identify existing vs new images
+      };
+    } else if (thumbnail && typeof thumbnail === 'object') {
+      // If it's already an object, ensure it has the required properties
+      return {
+        name: thumbnail.name || thumbnail.filename || 'thumbnail',
+        image: thumbnail.image || thumbnail.url || thumbnail.src || thumbnail,
+        type: thumbnail.type || 'image/jpeg',
+        size: thumbnail.size || null,
+        file: thumbnail.file || null,
+        isExisting: !thumbnail.file // Flag to identify existing vs new images
+      };
+    }
+    
+    return null;
+  };
+
   useEffect(() => {
     if (!id) {
       setDataLoading(false);
@@ -40,19 +97,19 @@ function EditProductPage() {
       try {
         const data = await fetchProduct(id);
         
-        // Normalize images for ProductForm
-        const images = Array.isArray(data.images)
-          ? data.images.map(img =>
-              typeof img === 'string'
-                ? { name: '', image: img }
-                : img
-            )
-          : [];
+        console.log('Raw product data:', data); // Debug log
+        
+        // Normalize images and thumbnail for ProductForm
+        const normalizedImages = normalizeImageData(data.images);
+        const normalizedThumbnail = normalizeThumbnailData(data.thumbnail_image);
+        
+        console.log('Normalized images:', normalizedImages); // Debug log
+        console.log('Normalized thumbnail:', normalizedThumbnail); // Debug log
           
         setInitialData({ 
           ...data, 
-          images,
-          thumbnail_image: data.thumbnail_image || null,
+          images: normalizedImages,
+          thumbnail_image: normalizedThumbnail,
           meta_title: data.meta_title || '',
           meta_description: data.meta_description || ''
         });
@@ -74,6 +131,7 @@ function EditProductPage() {
     setIsLoading(true);
     
     try {
+      console.log('Submitting form data:', formData); // Debug log
       await editProduct(id, formData);
       toast.success("Product updated successfully!");
       router.push("/admin/products");

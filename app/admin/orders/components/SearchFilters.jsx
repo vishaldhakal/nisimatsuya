@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, RefreshCw, Search } from 'lucide-react';
+import { RefreshCw, Search } from 'lucide-react';
 
  const SearchFilters = ({ searchQuery, filterStatus, onSearch, onFilterChange, onRefresh, isLoading }) => (
   <div className="mb-6 sm:flex sm:items-center sm:justify-between">
@@ -32,7 +32,7 @@ import { Filter, RefreshCw, Search } from 'lucide-react';
           <option value="cancelled">Cancelled</option>
         </select>
         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-          <Filter className="w-4 h-4 text-gray-400" />
+     
         </div>
       </div>
       

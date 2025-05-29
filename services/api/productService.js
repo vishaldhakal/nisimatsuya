@@ -54,15 +54,37 @@ const base64ToBlob = (base64, mime) => {
 const hasValidImages = (imgs) =>
   imgs && imgs.length > 0 && imgs.some(img => img.file || (img.image && img.image.startsWith('data:')));
 
+// Fixed function to check if thumbnail is valid
+const hasValidThumbnail = (thumbnail) => {
+  if (!thumbnail) return false;
+  return thumbnail.file || (thumbnail.image && thumbnail.image.startsWith('data:'));
+};
+
 const appendImagesToFormData = (formData, images) => {
+  if (!images || !Array.isArray(images)) return;
+  
   images.forEach((img, i) => {
-    if (img.file) formData.append('images', img.file);
-    else if (img.image && img.image.startsWith('data:')) {
+    if (img.file) {
+      formData.append('images', img.file);
+    } else if (img.image && img.image.startsWith('data:')) {
       const [meta, base64] = img.image.split(',');
       const mime = meta.split(':')[1].split(';')[0];
       formData.append('images', base64ToBlob(base64, mime), img.name || `image_${i}.jpg`);
     }
   });
+};
+
+// Fixed function to append thumbnail to FormData
+const appendThumbnailToFormData = (formData, thumbnail) => {
+  if (!thumbnail) return;
+  
+  if (thumbnail.file) {
+    formData.append('thumbnail_image', thumbnail.file);
+  } else if (thumbnail.image && thumbnail.image.startsWith('data:')) {
+    const [meta, base64] = thumbnail.image.split(',');
+    const mime = meta.split(':')[1].split(';')[0];
+    formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail.name || 'thumbnail.jpg');
+  }
 };
 
 export const fetchProducts = async () => (await axiosInstance.get('/api/products/')).data;
@@ -94,38 +116,51 @@ export const addProduct = async (data) => {
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
     if (meta_description !== undefined) cleanData.meta_description = meta_description;
 
-    // Always use FormData if thumbnail_image or images exist
-    if ((images && images.length > 0) || thumbnail_image) {
+    // Check if we need to use FormData (fixed condition)
+    const hasImages = hasValidImages(images);
+    const hasThumbnail = hasValidThumbnail(thumbnail_image);
+    
+    if (hasImages || hasThumbnail) {
+      console.log('Using FormData - Images:', hasImages, 'Thumbnail:', hasThumbnail);
+      
       const formData = new FormData();
+      
+      // Append product data
       Object.entries(cleanData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined)
+        if (value !== null && value !== undefined) {
           formData.append(key === 'category' ? 'category_id' : key, value);
-      });
-      appendImagesToFormData(formData, images);
-
-      // Handle thumbnail_image
-      if (thumbnail_image) {
-        if (thumbnail_image.file) {
-          formData.append('thumbnail_image', thumbnail_image.file);
-        } else if (thumbnail_image.image && thumbnail_image.image.startsWith('data:')) {
-          const [meta, base64] = thumbnail_image.image.split(',');
-          const mime = meta.split(':')[1].split(';')[0];
-          formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail_image.name || 'thumbnail.jpg');
         }
+      });
+      
+      // Append images
+      if (hasImages) {
+        appendImagesToFormData(formData, images);
+      }
+      
+      // Append thumbnail (fixed)
+      if (hasThumbnail) {
+        appendThumbnailToFormData(formData, thumbnail_image);
       }
 
       return (await axiosInstance.post('/api/products/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000,
+        headers: { 'Content-Type': 'multipart/form-data' }, 
+        timeout: 30000,
       })).data;
     } else {
+      console.log('Using JSON - No images or thumbnail');
+      
       // Only use JSON if there are no images and no thumbnail_image
       const jsonData = { ...cleanData, category_id: cleanData.category };
       delete jsonData.category;
+      
       return (await axiosInstance.post('/api/products/', jsonData, {
         headers: { 'Content-Type': 'application/json' }
       })).data;
     }
-  } catch (e) { console.error('Error adding product:', e); handleError(e, 'Failed to add product'); }
+  } catch (e) { 
+    console.error('Error adding product:', e); 
+    handleError(e, 'Failed to add product'); 
+  }
 };
 
 export const editProduct = async (id, data) => {
@@ -139,34 +174,47 @@ export const editProduct = async (id, data) => {
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
     if (meta_description !== undefined) cleanData.meta_description = meta_description;
 
-    if (hasValidImages(images) || thumbnail_image) {
+    // Check if we need to use FormData (fixed condition)
+    const hasImages = hasValidImages(images);
+    const hasThumbnail = hasValidThumbnail(thumbnail_image);
+    
+    if (hasImages || hasThumbnail) {
+      console.log('Edit: Using FormData - Images:', hasImages, 'Thumbnail:', hasThumbnail);
+      
       const formData = new FormData();
+      
+      // Append product data
       Object.entries(cleanData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined)
+        if (value !== null && value !== undefined) {
           formData.append(key, String(value));
-      });
-      appendImagesToFormData(formData, images);
-
-      // Handle thumbnail_image
-      if (thumbnail_image) {
-        if (thumbnail_image.file) {
-          formData.append('thumbnail_image', thumbnail_image.file);
-        } else if (thumbnail_image.image && thumbnail_image.image.startsWith('data:')) {
-          const [meta, base64] = thumbnail_image.image.split(',');
-          const mime = meta.split(':')[1].split(';')[0];
-          formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail_image.name || 'thumbnail.jpg');
         }
+      });
+      
+      // Append images
+      if (hasImages) {
+        appendImagesToFormData(formData, images);
+      }
+      
+      // Append thumbnail (fixed)
+      if (hasThumbnail) {
+        appendThumbnailToFormData(formData, thumbnail_image);
       }
 
       return (await axiosInstance.put(`/api/products/${slug}/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000,
+        headers: { 'Content-Type': 'multipart/form-data' }, 
+        timeout: 30000,
       })).data;
     } else {
+      console.log('Edit: Using JSON - No new images or thumbnail');
+      
       const jsonData = { ...cleanData, category_id: cleanData.category };
       delete jsonData.category;
-      if (thumbnail_image && thumbnail_image.image) {
+      
+      // If there's an existing thumbnail URL, include it
+      if (thumbnail_image && thumbnail_image.image && !thumbnail_image.image.startsWith('data:')) {
         jsonData.thumbnail_image = thumbnail_image.image;
       }
+      
       return (await axiosInstance.put(`/api/products/${slug}/`, jsonData, {
         headers: { 'Content-Type': 'application/json' }
       })).data;
@@ -192,7 +240,8 @@ export const uploadProductImages = async (productId, images) => {
     const formData = new FormData();
     images.forEach(img => img.file && formData.append('images', img.file));
     return (await axiosInstance.post(`/api/products/${productId}/images/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000,
+      headers: { 'Content-Type': 'multipart/form-data' }, 
+      timeout: 30000,
     })).data;
   } catch (e) { handleError(e, 'Failed to upload images'); }
 };

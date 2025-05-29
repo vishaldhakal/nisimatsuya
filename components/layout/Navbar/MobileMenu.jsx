@@ -1,9 +1,79 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDownIcon, XIcon, User, ShoppingBag, LogOut } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { useAuth } from "../../../context/AuthContext/AuthContext";
+import { useJWTSession } from "../../../hooks/useJWTSession";
+
+// JWT Decode function
+const decodeJWT = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+};
+
+const UserProfileSection = ({ userInfo, onLogout, onClose }) => {
+  const handleLinkClick = () => {
+    onClose();
+  };
+
+  return (
+    <div className="px-4 py-3 border-b bg-gradient-to-r from-pink-50 to-purple-50">
+      {/* User Info Header */}
+      <div className="flex items-center mb-3 space-x-3">
+        <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-600">
+          <User className="w-6 h-6 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900 truncate">
+            {`${userInfo?.first_name || ''} ${userInfo?.last_name || ''}`.trim() || 'User'}
+          </h3>
+          <p className="text-xs text-gray-600 truncate">{userInfo?.email}</p>
+          
+        </div>
+      </div>
+
+      {/* User Action Links */}
+      <div className="space-y-1">
+        <Link
+          href="/profile"
+          className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
+          onClick={handleLinkClick}
+        >
+          <User className="w-4 h-4 mr-3" />
+          Profile
+        </Link>
+        <Link
+          href="/orders"
+          className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
+          onClick={handleLinkClick}
+        >
+          <ShoppingBag className="w-4 h-4 mr-3" />
+          My Orders
+        </Link>
+        <button
+          onClick={() => {
+            onLogout();
+            onClose();
+          }}
+          className="flex items-center w-full px-3 py-2 text-sm text-red-600 transition-colors rounded-lg hover:bg-red-50"
+        >
+          <LogOut className="w-4 h-4 mr-3" />
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function MobileMenu({ 
   isOpen, 
@@ -12,6 +82,8 @@ export default function MobileMenu({
 }) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { session, logout } = useJWTSession();
+  const [userInfo, setUserInfo] = useState(null);
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -21,9 +93,33 @@ export default function MobileMenu({
     { href: "/blogs", label: "Blogs" },
   ];
 
+  // Decode JWT to get user info
+  useEffect(() => {
+    if (session && typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token') || session.accessToken;
+      if (token) {
+        const decodedToken = decodeJWT(token);
+        if (decodedToken) {
+          setUserInfo({
+            email: decodedToken.email,
+            first_name: decodedToken.first_name,
+            last_name: decodedToken.last_name,
+            phone: decodedToken.phone,
+            address: decodedToken.address,
+            user_id: decodedToken.user_id
+          });
+        }
+      }
+    }
+  }, [session]);
+
   const handleLinkClick = () => {
     onClose();
     setIsCategoriesOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -39,24 +135,33 @@ export default function MobileMenu({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-4 border-b flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Menu</h2>
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-500 to-pink-600">
+            <h2 className="text-xl font-semibold text-white">Menu</h2>
             <button 
               onClick={onClose}
-              className="p-1 rounded-md hover:bg-gray-100"
+              className="p-1 transition-colors rounded-md hover:bg-pink-700"
             >
-              <XIcon className="h-6 w-6 text-gray-500" />
+              <XIcon className="w-6 h-6 text-white" />
             </button>
           </div>
+
+          {/* User Profile Section - Show when authenticated */}
+          {isAuthenticated && userInfo && (
+            <UserProfileSection 
+              userInfo={userInfo} 
+              onLogout={handleLogout}
+              onClose={onClose}
+            />
+          )}
           
           {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto py-2">
+          <div className="flex-1 py-2 overflow-y-auto">
             <div className="flex flex-col">
               {navLinks.slice(0, 2).map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-3 hover:bg-pink-50 text-gray-900 hover:text-pink-600 transition"
+                  className="px-4 py-3 text-gray-900 transition hover:bg-pink-50 hover:text-pink-600"
                   onClick={handleLinkClick}
                 >
                   {link.label}
@@ -67,7 +172,7 @@ export default function MobileMenu({
               <div className="flex flex-col">
                 <button 
                   onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                  className="px-4 py-3 flex justify-between items-center text-left hover:bg-pink-50 text-gray-900 hover:text-pink-600 transition"
+                  className="flex items-center justify-between px-4 py-3 text-left text-gray-900 transition hover:bg-pink-50 hover:text-pink-600"
                 >
                   <span>Categories</span>
                   <ChevronDownIcon
@@ -85,7 +190,7 @@ export default function MobileMenu({
                     <Link
                       key={category.slug}
                       href={`/products/category/${category.slug}`}
-                      className="block px-8 py-2 text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-150"
+                      className="block px-8 py-2 text-gray-700 transition-colors duration-150 hover:bg-pink-50 hover:text-pink-600"
                       onClick={handleLinkClick}
                     >
                       {category.name}
@@ -98,7 +203,7 @@ export default function MobileMenu({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-3 hover:bg-pink-50 text-gray-900 hover:text-pink-600 transition"
+                  className="px-4 py-3 text-gray-900 transition hover:bg-pink-50 hover:text-pink-600"
                   onClick={handleLinkClick}
                 >
                   {link.label}
@@ -107,30 +212,26 @@ export default function MobileMenu({
             </div>
           </div>
           
-          {/* Auth Footer */}
-          <div className="p-4 border-t flex justify-center space-x-4">
-            {isAuthenticated ? (
-              <UserDropdown isMobile onClose={onClose} />
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-pink-700 hover:text-pink-900 font-semibold"
-                  onClick={handleLinkClick}
-                >
-                  Login
-                </Link>
-                <span className="text-gray-400">/</span>
-                <Link
-                  href="/signup"
-                  className="text-pink-700 hover:text-pink-900 font-semibold"
-                  onClick={handleLinkClick}
-                >
-                  Signup
-                </Link>
-              </>
-            )}
-          </div>
+          {/* Auth Footer - Show when NOT authenticated */}
+          {!isAuthenticated && (
+            <div className="flex justify-center p-4 space-x-4 border-t">
+              <Link
+                href="/login"
+                className="font-semibold text-pink-700 hover:text-pink-900"
+                onClick={handleLinkClick}
+              >
+                Login
+              </Link>
+              <span className="text-gray-400">/</span>
+              <Link
+                href="/signup"
+                className="font-semibold text-pink-700 hover:text-pink-900"
+                onClick={handleLinkClick}
+              >
+                Signup
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
