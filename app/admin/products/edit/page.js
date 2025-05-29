@@ -59,18 +59,18 @@ function EditProductPage() {
     }).filter(Boolean); // Remove any null entries
   };
 
-  // Helper function to normalize thumbnail data
+
   const normalizeThumbnailData = (thumbnail) => {
     if (!thumbnail) return null;
     
     if (typeof thumbnail === 'string') {
-      // If it's a string URL, create a proper object
+  
       return {
         name: thumbnail.split('/').pop() || 'thumbnail',
-        image: thumbnail, // Keep the original URL
-        type: 'image/jpeg', // Default type
-        size: null, // Unknown size for existing images
-        isExisting: true // Flag to identify existing vs new images
+        image: thumbnail, 
+        type: 'image/jpeg', 
+        size: null, 
+        isExisting: true 
       };
     } else if (thumbnail && typeof thumbnail === 'object') {
       // If it's already an object, ensure it has the required properties
@@ -80,7 +80,7 @@ function EditProductPage() {
         type: thumbnail.type || 'image/jpeg',
         size: thumbnail.size || null,
         file: thumbnail.file || null,
-        isExisting: !thumbnail.file // Flag to identify existing vs new images
+        isExisting: !thumbnail.file 
       };
     }
     

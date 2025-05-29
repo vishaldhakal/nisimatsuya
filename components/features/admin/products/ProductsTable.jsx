@@ -46,11 +46,15 @@ export const ProductsTable = ({
                 <div className="flex items-center">
                   <div className="flex-shrink-0 w-10 h-10 overflow-hidden rounded-md">
                     {product.images?.length > 0 ? (
-                      <img
-                        className="object-cover w-10 h-10"
+                      <Image
                         src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
                         alt={product.name}
+                        width={40} // 10 * 4 = 40px
+                        height={40} // 10 * 4 = 40px
+                        className="object-cover rounded-full" // add rounded if it's an avatar
+                        unoptimized // remove if image domain is configured
                       />
+
                     ) : (
                       <div className="flex items-center justify-center w-10 h-10 text-gray-500 bg-gray-200">
                         <Package className="w-6 h-6" />

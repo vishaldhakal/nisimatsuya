@@ -8,12 +8,12 @@ export default function OrderCompleteScreen({ orderNumber, orderSummary, logoCon
 
 
   const paymentMethods = [
-    { id: "visa", name: "Visa", icon: "images/payment-icons/visa.webp" },
-    { id: "mastercard", name: "Mastercard", icon: "images/payment-icons/mastercard.png" },
-    { id: "apple", name: "Apple Pay", icon: "images/payment-icons/apple.webp" },
-    { id: "google", name: "Google Pay", icon: "images/payment-icons/google.webp" },
-    { id: "paypal", name: "PayPal", icon: "images/payment-icons/paypal.png" },
-    { id: "cod", name: "Cash on Delivery", icon: "images/payment-icons/cod.png" },
+    { id: "visa", name: "Visa", icon: "images/icons/visa.webp" },
+    { id: "mastercard", name: "Mastercard", icon: "images/icons/mastercard.png" },
+    { id: "apple", name: "Apple Pay", icon: "images/icons/apple.webp" },
+    { id: "google", name: "Google Pay", icon: "images/icons/google.webp" },
+    { id: "paypal", name: "PayPal", icon: "images/icons/paypal.png" },
+    { id: "cod", name: "Cash on Delivery", icon: "images/icons/cod.png" },
   ];
 
   return (

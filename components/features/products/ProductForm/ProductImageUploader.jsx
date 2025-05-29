@@ -108,17 +108,26 @@ export default function ProductImageUploader({
                 >
                   <div className="w-full h-full bg-gray-100">
                     {imageUrl ? (
-                      <img
+                          <div className="relative w-full h-full">
+                      <Image
                         src={imageUrl}
                         alt={imageName}
-                        className="object-cover w-full h-full"
+                        fill
+                        className="object-cover"
                         onError={(e) => {
-                          console.error('Image load error:', imageUrl);
-                          console.error('Original image data:', img);
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
+                          console.error('Image load error:', imageUrl)
+                          console.error('Original image data:', img)
+                          e.target.style.display = 'none'
+                          e.target.nextSibling.style.display = 'flex'
                         }}
+                        unoptimized 
                       />
+                      <div
+                        className="absolute inset-0 items-center justify-center hidden text-sm text-gray-500 bg-gray-100"
+                      >
+                        Failed to load image
+                      </div>
+                    </div>
                     ) : null}
                     <div 
                       className="flex items-center justify-center w-full h-full text-xs text-gray-500 bg-gray-200"

@@ -64,13 +64,15 @@ const OrderDetails = ({ order }) => (
               {order.items?.map((item, idx) => (
                 <div key={item.product_id || idx} className="flex items-start gap-4 p-4 transition-shadow duration-200 border border-gray-200 rounded-lg bg-gray-50 hover:shadow-md">
                   <div className="flex-shrink-0">
-                    <img 
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${item.product_thumbnail_image}`}
-                      alt={item.product_name}
-                      className="object-cover w-16 h-16 border border-gray-200 rounded-lg sm:w-20 sm:h-20"
-                      
-                      
-                    />
+                    
+                    <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${item.product_thumbnail_image}`}
+                    alt={item.product_name}
+                    width={80} 
+                    height={80} 
+                    className="object-cover w-16 h-16 border border-gray-200 rounded-lg sm:w-20 sm:h-20"
+                    unoptimized 
+                  />
                   </div>
                   
                   <div className="flex-1 min-w-0">

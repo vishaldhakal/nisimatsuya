@@ -17,11 +17,16 @@ const OrderItems = ({ items }) => {
             {/* Product Image */}
             <div className="flex-shrink-0 w-12 h-12 overflow-hidden bg-white border border-gray-200 rounded-lg sm:w-16 sm:h-16 md:w-20 md:h-20">
               {item.product_thumbnail_image ? (
-                <img
+                
+                <div className="relative w-full h-full">
+                <Image
                   src={`${process.env.NEXT_PUBLIC_API_URL}${item.product_thumbnail_image}`}
                   alt={item.product_name}
-                  className="object-cover w-full h-full"
+                  fill
+                  className="object-cover"
+                  unoptimized // only use this if image optimization fails or you're loading from dynamic/unsafe URLs
                 />
+              </div>
               ) : (
                 <div className="flex items-center justify-center w-full h-full">
                   <Package className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6 md:w-8 md:h-8" />

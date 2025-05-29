@@ -271,11 +271,15 @@ export default function ProductForm({
             {formData.thumbnail_image ? (
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <img
-                    src={formData.thumbnail_image.image || formData.thumbnail_image}
-                    alt="Thumbnail preview"
-                    className="object-cover w-20 h-20 border border-gray-300 rounded-md"
-                  />
+
+                  <Image
+                  src={formData.thumbnail_image.image || formData.thumbnail_image}
+                  alt="Thumbnail preview"
+                  width={80} 
+                  height={80} 
+                  className="object-cover border border-gray-300 rounded-md"
+                  unoptimized 
+                />
                 </div>
                 <div className="flex gap-2">
                   <button
