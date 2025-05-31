@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import OrderTracking from "./OrderTracking";
+
 
 export default function OrderCompleteScreen({ orderNumber, orderSummary, logoConfig }) {
 

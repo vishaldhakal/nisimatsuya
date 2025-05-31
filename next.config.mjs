@@ -12,7 +12,7 @@ const nextConfig = {
       "b7bwr4s3-8000.inc1.devtunnels.msnull",
       "192.168.1.87",
       "http://192.168.1.87:8000null",
-      "educational-basically-queen-institutions.trycloudflare.com",
+      "descending-danish-ru-forestry.trycloudflare.com",
     ],
   },
 };

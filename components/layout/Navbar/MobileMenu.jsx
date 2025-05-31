@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDownIcon, XIcon, User, ShoppingBag, LogOut } from "lucide-react";
-import UserDropdown from "./UserDropdown";
+
 import { useAuth } from "../../../context/AuthContext/AuthContext";
 import { useJWTSession } from "../../../hooks/useJWTSession";
 
@@ -21,55 +21,72 @@ const decodeJWT = (token) => {
   }
 };
 
-const UserProfileSection = ({ userInfo, onLogout, onClose }) => {
+const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) => {
   const handleLinkClick = () => {
     onClose();
   };
 
   return (
-    <div className="px-4 py-3 border-b bg-gradient-to-r from-pink-50 to-purple-50">
-      {/* User Info Header */}
-      <div className="flex items-center mb-3 space-x-3">
-        <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-600">
-          <User className="w-6 h-6 text-white" />
+    <div className="border-b">
+      {/* User Info Header - Always Visible */}
+      <button 
+        onClick={onToggle}
+        className="w-full px-4 py-3 transition-colors bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-600">
+              <User className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <h3 className="text-sm font-semibold text-gray-900 truncate">
+                {`${userInfo?.first_name || ''} ${userInfo?.last_name || ''}`.trim() || 'User'}
+              </h3>
+              <p className="text-xs text-gray-600 truncate">{userInfo?.email}</p>
+            </div>
+          </div>
+          <ChevronDownIcon
+            className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
-            {`${userInfo?.first_name || ''} ${userInfo?.last_name || ''}`.trim() || 'User'}
-          </h3>
-          <p className="text-xs text-gray-600 truncate">{userInfo?.email}</p>
-          
-        </div>
-      </div>
+      </button>
 
-      {/* User Action Links */}
-      <div className="space-y-1">
-        <Link
-          href="/profile"
-          className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
-          onClick={handleLinkClick}
-        >
-          <User className="w-4 h-4 mr-3" />
-          Profile
-        </Link>
-        <Link
-          href="/orders"
-          className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
-          onClick={handleLinkClick}
-        >
-          <ShoppingBag className="w-4 h-4 mr-3" />
-          My Orders
-        </Link>
-        <button
-          onClick={() => {
-            onLogout();
-            onClose();
-          }}
-          className="flex items-center w-full px-3 py-2 text-sm text-red-600 transition-colors rounded-lg hover:bg-red-50"
-        >
-          <LogOut className="w-4 h-4 mr-3" />
-          Sign Out
-        </button>
+      {/* User Action Links - Collapsible */}
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isOpen ? 'max-h-48' : 'max-h-0'
+        }`}
+      >
+        <div className="px-4 py-3 space-y-1 bg-gradient-to-r from-pink-50 to-purple-50">
+          <Link
+            href="/profile"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
+            onClick={handleLinkClick}
+          >
+            <User className="w-4 h-4 mr-3" />
+            Profile
+          </Link>
+          <Link
+            href="/myorders"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
+            onClick={handleLinkClick}
+          >
+            <ShoppingBag className="w-4 h-4 mr-3" />
+            My Orders
+          </Link>
+          <button
+            onClick={() => {
+              onLogout();
+              onClose();
+            }}
+            className="flex items-center w-full px-3 py-2 text-sm text-red-600 transition-colors rounded-lg hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4 mr-3" />
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -81,6 +98,7 @@ export default function MobileMenu({
   categories 
 }) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isAuthenticated } = useAuth();
   const { session, logout } = useJWTSession();
   const [userInfo, setUserInfo] = useState(null);
@@ -116,6 +134,7 @@ export default function MobileMenu({
   const handleLinkClick = () => {
     onClose();
     setIsCategoriesOpen(false);
+    setIsProfileOpen(false);
   };
 
   const handleLogout = () => {
@@ -151,6 +170,8 @@ export default function MobileMenu({
               userInfo={userInfo} 
               onLogout={handleLogout}
               onClose={onClose}
+              isOpen={isProfileOpen}
+              onToggle={() => setIsProfileOpen(!isProfileOpen)}
             />
           )}
           
@@ -209,6 +230,8 @@ export default function MobileMenu({
                   {link.label}
                 </Link>
               ))}
+
+       
             </div>
           </div>
           

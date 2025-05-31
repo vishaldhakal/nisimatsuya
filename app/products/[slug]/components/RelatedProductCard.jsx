@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
- import { useCart } from "../../../../components/features/cart/CartContext";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useCart } from "../../../../components/features/cart/CartContext";
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+
 export const RelatedProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+
+  // Early return if product is invalid
+  if (!product || typeof product !== 'object') {
+    console.warn('RelatedProductCard: Invalid product prop:', product);
+    return null;
+  }
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -16,33 +23,66 @@ export const RelatedProductCard = ({ product }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
+    // Ensure we have valid product data before adding to cart
+    if (!product || !product.id) {
+      console.error('Cannot add invalid product to cart:', product);
+      return;
+    }
+    
     addToCart({
       id: product.id,
-      name: product.name,
+      name: product.name || 'Unnamed Product',
       image: product.images?.[0]?.image || product.image,
       thumbnail_image: product.thumbnail_image,
-      mrp: product.market_price || product.mrp,
-      price: product.price,
-      perUnit: product.perUnit
+      mrp: product.market_price || product.mrp || 0,
+      price: product.price || 0,
+      perUnit: product.perUnit || 'piece'
     }, 1);
 
     setIsAddedToCart(true);
     setTimeout(() => setIsAddedToCart(false), 5000);
+  }, [addToCart, product]);
+
+  // Safely extract values with fallbacks
+  const productId = product.id || '';
+  const productName = product.name || 'Unnamed Product';
+  const productPrice = product.price || 0;
+  const productMarketPrice = product.market_price || product.mrp || 0;
+  const discountPercentage = product.discount || 0;
+
+  // FIX: Handle slug properly - convert object to string if needed
+  const getSlugString = (slug) => {
+    if (typeof slug === 'string') return slug;
+    if (typeof slug === 'object' && slug !== null) {
+      // Handle Sanity-style slug objects
+      return slug.current || slug.slug || slug._key || String(slug);
+    }
+    return productId ? String(productId) : 'product';
   };
 
-  const discountPercentage = product.market_price && product.market_price > product.price
-    ? Math.round(((product.market_price - product.price) / product.market_price) * 100)
-    : 0;
+  
+  const productUrl = `/products/${typeof product.slug === 'string' ? product.slug : product.slug.current}}`;
+
+  // Get image URL safely
+  const getImageUrl = () => {
+    if (product.images?.[0]?.image) {
+      return `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`;
+    }
+    if (product.image) {
+      return `${process.env.NEXT_PUBLIC_API_URL}${product.image}`;
+    }
+    return '/placeholder-product.jpg';
+  };
 
   return (
     <div className="relative">
-      <Link href={`/products/${product.id}`}>
+      <Link href={productUrl}>
         <div 
-          className={`bg-white rounded-2xl border-2 border-pink-100 p-4 transition-all duration-300 ${
+          className={`bg-white rounded-2xl border-2 border-pink-100 p-4 transition-all duration-300 cursor-pointer ${
             isHovered ? 'shadow-lg scale-[1.02]' : 'shadow-md'
           }`}
           onMouseEnter={() => setIsHovered(true)}
@@ -56,19 +96,16 @@ export const RelatedProductCard = ({ product }) => {
 
           <div className="relative flex items-center justify-center h-48 mb-4 overflow-hidden bg-gray-50 rounded-xl">
             <Image
-              src={
-                product.images?.[0]?.image
-                  ? `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`
-                  : product.image
-                    ? `${process.env.NEXT_PUBLIC_API_URL}${product.image}`
-                    : '/placeholder-product.jpg'
-              }
-              alt={product.name}
+              src={getImageUrl()}
+              alt={productName}
               width={150}
               height={150}
               className={`object-contain max-h-40 transition-transform duration-300 ${
                 isHovered ? 'scale-110' : 'scale-100'
               }`}
+              onError={(e) => {
+                e.target.src = '/placeholder-product.jpg';
+              }}
             />
             
             {!isMobile && (
@@ -80,6 +117,7 @@ export const RelatedProductCard = ({ product }) => {
                 <button
                   onClick={handleAddToCart}
                   className="p-2 text-pink-600 transition-transform duration-300 transform bg-white rounded-full shadow-lg hover:scale-110"
+                  aria-label="Add to cart"
                 >
                   <ShoppingCart size={18} />
                 </button>
@@ -89,17 +127,17 @@ export const RelatedProductCard = ({ product }) => {
 
           <div className="mb-3">
             <h3 className="mb-2 text-sm font-medium text-gray-800 line-clamp-2">
-              {product.name}
+              {productName}
             </h3>
             
             <div className="flex flex-col">
-              {product.market_price && product.market_price > product.price && (
+              {productMarketPrice && productMarketPrice > productPrice && (
                 <span className="text-xs text-gray-400 line-through">
-                  ₹{product.market_price.toLocaleString()}
+                  ₹{productMarketPrice.toLocaleString()}
                 </span>
               )}
               <span className="text-lg font-bold text-gray-900">
-                ₹{product.price.toLocaleString()}
+                ₹{productPrice.toLocaleString()}
               </span>
             </div>
           </div>
@@ -107,7 +145,7 @@ export const RelatedProductCard = ({ product }) => {
           {isMobile && (
             <button
               onClick={handleAddToCart}
-              className="flex items-center justify-center w-full gap-2 px-4 py-2 font-medium text-white bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl"
+              className="flex items-center justify-center w-full gap-2 px-4 py-2 font-medium text-white bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600"
             >
               <ShoppingCart size={16} />
               Add to Cart

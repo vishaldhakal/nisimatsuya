@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowUpDown, Package } from 'lucide-react';
 import { ProductsActions } from './ProductsActions';
 import { formatPrice, getStockStatus, getCategoryName } from './productsUtils';
+import Image from 'next/image';
 
 export const ProductsTable = ({ 
   products, 
@@ -11,13 +12,25 @@ export const ProductsTable = ({
   handleSort, 
   showDeleteConfirm, 
   confirmDelete, 
-  cancelDelete 
+  cancelDelete,
+  onDelete,
+  isDeleting
 }) => {
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) return <ArrowUpDown className="w-4 h-4 ml-1 text-gray-400" />;
     return sortConfig.direction === 'ascending' 
       ? <ArrowUpDown className="w-4 h-4 ml-1 text-blue-500" /> 
       : <ArrowUpDown className="w-4 h-4 ml-1 text-blue-500 transform rotate-180" />;
+  };
+
+  // Helper function to get category slug
+  const getCategorySlug = (product, categories) => {
+    if (product.category_slug) {
+      return product.category_slug;
+    }
+    // Fallback: find category slug by category ID
+    const category = categories?.find(cat => cat.id === product.category);
+    return category?.slug || 'unknown';
   };
 
   return (
@@ -40,6 +53,9 @@ export const ProductsTable = ({
       <tbody className="bg-white divide-y divide-gray-200">
         {products.map((product) => {
           const stockStatus = getStockStatus(product.stock);
+          const categorySlug = getCategorySlug(product, categories);
+          const editUrl = `/admin/products/edit?slug=${product.slug}&category=${categorySlug}`;
+          
           return (
             <tr key={product.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
@@ -49,12 +65,11 @@ export const ProductsTable = ({
                       <Image
                         src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
                         alt={product.name}
-                        width={40} // 10 * 4 = 40px
-                        height={40} // 10 * 4 = 40px
-                        className="object-cover rounded-full" // add rounded if it's an avatar
-                        unoptimized // remove if image domain is configured
+                        width={40}
+                        height={40}
+                        className="object-cover rounded-full"
+                        unoptimized
                       />
-
                     ) : (
                       <div className="flex items-center justify-center w-10 h-10 text-gray-500 bg-gray-200">
                         <Package className="w-6 h-6" />
@@ -63,7 +78,7 @@ export const ProductsTable = ({
                   </div>
                   <div className="ml-4">
                     <Link
-                      href={`/admin/products/edit?id=${product.id}`}
+                      href={editUrl}
                       className="text-sm font-medium text-blue-600 hover:underline"
                     >
                       {product.name}
@@ -73,7 +88,6 @@ export const ProductsTable = ({
                       {product.description.replace(/<[^>]*>/g, '')}
                     </div>
                   )}
-
                   </div>
                 </div>
               </td>
@@ -94,11 +108,14 @@ export const ProductsTable = ({
               </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <ProductsActions 
-                  productId={product.id}
+                  product={product}
+                  categories={categories}
                   showDeleteConfirm={showDeleteConfirm}
                   confirmDelete={confirmDelete}
                   cancelDelete={cancelDelete}
-                  editHref={`/admin/products/edit?id=${product.id}`}
+                  editHref={editUrl}
+                  onDelete={onDelete}
+                  isDeleting={isDeleting}
                 />
               </td>
             </tr>

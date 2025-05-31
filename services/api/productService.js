@@ -54,15 +54,16 @@ const base64ToBlob = (base64, mime) => {
 const hasValidImages = (imgs) =>
   imgs && imgs.length > 0 && imgs.some(img => img.file || (img.image && img.image.startsWith('data:')));
 
-// Fixed function to check if thumbnail is valid
 const hasValidThumbnail = (thumbnail) => {
   if (!thumbnail) return false;
-  return thumbnail.file || (thumbnail.image && thumbnail.image.startsWith('data:'));
+  if (thumbnail instanceof File) return true;
+  if (thumbnail.file instanceof File) return true;
+  if (thumbnail.image && thumbnail.image.startsWith('data:')) return true;
+  return false;
 };
 
 const appendImagesToFormData = (formData, images) => {
   if (!images || !Array.isArray(images)) return;
-  
   images.forEach((img, i) => {
     if (img.file) {
       formData.append('images', img.file);
@@ -74,26 +75,100 @@ const appendImagesToFormData = (formData, images) => {
   });
 };
 
-// Fixed function to append thumbnail to FormData
 const appendThumbnailToFormData = (formData, thumbnail) => {
   if (!thumbnail) return;
-  
-  if (thumbnail.file) {
+  if (thumbnail instanceof File) {
+    formData.append('thumbnail_image', thumbnail);
+    return;
+  }
+  if (thumbnail.file instanceof File) {
     formData.append('thumbnail_image', thumbnail.file);
-  } else if (thumbnail.image && thumbnail.image.startsWith('data:')) {
+    return;
+  }
+  if (thumbnail.image && thumbnail.image.startsWith('data:')) {
     const [meta, base64] = thumbnail.image.split(',');
     const mime = meta.split(':')[1].split(';')[0];
-    formData.append('thumbnail_image', base64ToBlob(base64, mime), thumbnail.name || 'thumbnail.jpg');
+    const blob = base64ToBlob(base64, mime);
+    formData.append('thumbnail_image', blob, thumbnail.name || 'thumbnail.jpg');
+    return;
+  }
+  if (thumbnail.image && typeof thumbnail.image === 'string') {
+    formData.append('thumbnail_image', thumbnail.image);
   }
 };
 
-export const fetchProducts = async () => (await axiosInstance.get('/api/products/')).data;
+// Helper function to get category slug by ID
+const getCategorySlugById = async (categoryId) => {
+  try {
+    const response = await axiosInstance.get('/api/categories/');
+    const category = response.data.find(cat => cat.id === categoryId);
+    return category ? category.slug : null;
+  } catch (e) {
+    console.error('Error fetching category:', e);
+    return null;
+  }
+};
 
+// MAIN API FUNCTIONS
+
+export const fetchProducts = async () => {
+  try {
+    const response = await axiosInstance.get('/api/products/');
+    return response.data;
+  } catch (e) {
+    handleError(e, 'Failed to fetch products');
+  }
+};
+
+export const fetchCategories = async () => {
+  try {
+    const response = await axiosInstance.get('/api/categories/');
+    return response.data;
+  } catch (e) {
+    handleError(e, 'Failed to fetch categories');
+  }
+};
+
+// PRIMARY METHOD: Fetch product using category_slug and slug
+export const fetchProductByCategoryAndSlug = async (category_slug, slug) => {
+  try {
+    const res = await axiosInstance.get(`/api/products/${category_slug}/${slug}/`);
+    return res.data;
+  } catch (e) { 
+    handleError(e, 'Failed to fetch product'); 
+  }
+};
+
+// DEPRECATED: Use fetchProductByCategoryAndSlug instead
+// This function now finds the category first, then calls the proper endpoint
 export const fetchProductBySlug = async (slug) => {
   try {
-    const res = await axiosInstance.get(`/api/products/${slug}/`);
-    return res.data;
-  } catch (e) { handleError(e, 'Failed to fetch product'); }
+    console.warn('fetchProductBySlug is deprecated. Use fetchProductByCategoryAndSlug instead.');
+    
+    // Get all products to find the matching slug and its category
+    const products = await fetchProducts();
+    const product = products.find(p => p.slug === slug);
+    
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    
+    // If product has category_slug, use it directly
+    if (product.category_slug) {
+      return await fetchProductByCategoryAndSlug(product.category_slug, slug);
+    }
+    
+    // Otherwise, fetch category info
+    const categorySlug = await getCategorySlugById(product.category);
+    if (!categorySlug) {
+      throw new Error('Product category not found');
+    }
+    
+    return await fetchProductByCategoryAndSlug(categorySlug, slug);
+    
+  } catch (e) { 
+    handleError(e, 'Failed to fetch product'); 
+  }
 };
 
 export const fetchProductById = async (id) => {
@@ -101,43 +176,59 @@ export const fetchProductById = async (id) => {
     const products = await fetchProducts();
     const product = products.find(p => p.id === parseInt(id));
     if (!product) throw new Error('Product not found');
-    return await fetchProductBySlug(product.slug);
-  } catch (e) { handleError(e, 'Failed to fetch product'); }
+    
+    // Use the proper category + slug method
+    if (product.category_slug) {
+      return await fetchProductByCategoryAndSlug(product.category_slug, product.slug);
+    }
+    
+    const categorySlug = await getCategorySlugById(product.category);
+    if (!categorySlug) {
+      throw new Error('Product category not found');
+    }
+    
+    return await fetchProductByCategoryAndSlug(categorySlug, product.slug);
+  } catch (e) { 
+    handleError(e, 'Failed to fetch product'); 
+  }
 };
 
 export const fetchProduct = fetchProductById;
 
+// DELETE PRODUCT - Uses category_slug + slug (CORRECT APPROACH)
+export const deleteProduct = async (category_slug, slug) => {
+  try {
+    await axiosInstance.delete(`/api/products/${category_slug}/${slug}/`);
+    return { success: true, message: 'Product deleted successfully' };
+  } catch (e) { 
+    console.error('Error deleting product:', e);
+    handleError(e, 'Failed to delete product'); 
+  }
+};
+
+// ADD PRODUCT
 export const addProduct = async (data) => {
   try {
     const { images, id, meta_title, meta_description, thumbnail_image, ...productData } = data;
     const cleanData = cleanProductData(productData);
 
-    // Add meta fields
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
     if (meta_description !== undefined) cleanData.meta_description = meta_description;
 
-    // Check if we need to use FormData (fixed condition)
     const hasImages = hasValidImages(images);
     const hasThumbnail = hasValidThumbnail(thumbnail_image);
     
     if (hasImages || hasThumbnail) {
-      console.log('Using FormData - Images:', hasImages, 'Thumbnail:', hasThumbnail);
-      
       const formData = new FormData();
-      
-      // Append product data
       Object.entries(cleanData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formData.append(key === 'category' ? 'category_id' : key, value);
         }
       });
-      
-      // Append images
+ 
       if (hasImages) {
         appendImagesToFormData(formData, images);
       }
-      
-      // Append thumbnail (fixed)
       if (hasThumbnail) {
         appendThumbnailToFormData(formData, thumbnail_image);
       }
@@ -147,9 +238,6 @@ export const addProduct = async (data) => {
         timeout: 30000,
       })).data;
     } else {
-      console.log('Using JSON - No images or thumbnail');
-      
-      // Only use JSON if there are no images and no thumbnail_image
       const jsonData = { ...cleanData, category_id: cleanData.category };
       delete jsonData.category;
       
@@ -163,59 +251,42 @@ export const addProduct = async (data) => {
   }
 };
 
-export const editProduct = async (id, data) => {
+// EDIT PRODUCT - Uses category_slug + slug (CORRECT APPROACH)
+export const editProduct = async (category_slug, slug, data) => {
   try {
     const { images, meta_title, meta_description, thumbnail_image, ...productData } = data;
     const cleanData = cleanProductData(productData);
-    const product = await fetchProductById(id);
-    const slug = product.slug;
 
-    // Add meta fields
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
     if (meta_description !== undefined) cleanData.meta_description = meta_description;
 
-    // Check if we need to use FormData (fixed condition)
     const hasImages = hasValidImages(images);
-    const hasThumbnail = hasValidThumbnail(thumbnail_image);
-    
-    if (hasImages || hasThumbnail) {
-      console.log('Edit: Using FormData - Images:', hasImages, 'Thumbnail:', hasThumbnail);
-      
+    const hasNewThumbnail = hasValidThumbnail(thumbnail_image) && 
+                           (!thumbnail_image.isExisting || thumbnail_image.file);
+
+    const useFormData = hasImages || hasNewThumbnail;
+
+    if (useFormData) {
       const formData = new FormData();
-      
-      // Append product data
       Object.entries(cleanData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formData.append(key, String(value));
         }
       });
-      
-      // Append images
-      if (hasImages) {
-        appendImagesToFormData(formData, images);
-      }
-      
-      // Append thumbnail (fixed)
-      if (hasThumbnail) {
-        appendThumbnailToFormData(formData, thumbnail_image);
-      }
+      if (hasImages) appendImagesToFormData(formData, images);
+      if (hasNewThumbnail) appendThumbnailToFormData(formData, thumbnail_image);
 
-      return (await axiosInstance.put(`/api/products/${slug}/`, formData, {
+      return (await axiosInstance.patch(`/api/products/${category_slug}/${slug}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, 
         timeout: 30000,
       })).data;
     } else {
-      console.log('Edit: Using JSON - No new images or thumbnail');
-      
-      const jsonData = { ...cleanData, category_id: cleanData.category };
+      const jsonData = { 
+        ...cleanData, 
+        thumbnail_image: thumbnail_image?.image || null
+      };
       delete jsonData.category;
-      
-      // If there's an existing thumbnail URL, include it
-      if (thumbnail_image && thumbnail_image.image && !thumbnail_image.image.startsWith('data:')) {
-        jsonData.thumbnail_image = thumbnail_image.image;
-      }
-      
-      return (await axiosInstance.put(`/api/products/${slug}/`, jsonData, {
+      return (await axiosInstance.patch(`/api/products/${category_slug}/${slug}/`, jsonData, {
         headers: { 'Content-Type': 'application/json' }
       })).data;
     }
@@ -225,7 +296,20 @@ export const editProduct = async (id, data) => {
   }
 };
 
+
+export const fetchSimilarProducts = async ( slug) => {
+    try {
+      const res = await axiosInstance.get(`/api/products/${slug}/similar/`);
+      return res.data;
+    } catch (e2) {
+      console.error('Error fetching similar products:', e2);
+      return []; 
+    }
+  }
+
+// DEPRECATED FUNCTIONS (kept for backward compatibility)
 export const addProductWithoutImages = async (data) => {
+  console.warn('addProductWithoutImages is deprecated. Use addProduct instead.');
   try {
     const { images, id, ...productData } = data;
     const cleanData = cleanProductData(productData);
@@ -236,6 +320,7 @@ export const addProductWithoutImages = async (data) => {
 };
 
 export const uploadProductImages = async (productId, images) => {
+  console.warn('uploadProductImages is deprecated. Use addProduct or editProduct with images instead.');
   try {
     const formData = new FormData();
     images.forEach(img => img.file && formData.append('images', img.file));

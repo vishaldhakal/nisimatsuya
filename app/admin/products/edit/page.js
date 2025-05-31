@@ -4,12 +4,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { toast } from 'react-hot-toast';
 import { ProductForm } from '../../../../components/features/products';
-import { editProduct, fetchProduct, fetchCategories } from '../../../../services';
+import { editProduct, fetchProductBySlug, fetchCategories } from '../../../../services';
 
 function EditProductPage() {
   const router = useRouter();
+  
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const slug = searchParams.get("slug");
+  const category_slug = searchParams.get("category");
+
   const [initialData, setInitialData] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,35 +39,31 @@ function EditProductPage() {
     
     return images.map((img, index) => {
       if (typeof img === 'string') {
-        // If it's a string URL, create a proper object
         return {
           name: img.split('/').pop() || `image_${index}`,
-          image: img, // Keep the original URL
-          type: 'image/jpeg', // Default type
-          size: null, // Unknown size for existing images
-          isExisting: true // Flag to identify existing vs new images
+          image: img,
+          type: 'image/jpeg',
+          size: null,
+          isExisting: true
         };
       } else if (img && typeof img === 'object') {
-        // If it's already an object, ensure it has the required properties
         return {
           name: img.name || img.filename || `image_${index}`,
           image: img.image || img.url || img.src || img,
           type: img.type || 'image/jpeg',
           size: img.size || null,
           file: img.file || null,
-          isExisting: !img.file // Flag to identify existing vs new images
+          isExisting: !img.file
         };
       }
       return null;
-    }).filter(Boolean); // Remove any null entries
+    }).filter(Boolean);
   };
-
 
   const normalizeThumbnailData = (thumbnail) => {
     if (!thumbnail) return null;
     
     if (typeof thumbnail === 'string') {
-  
       return {
         name: thumbnail.split('/').pop() || 'thumbnail',
         image: thumbnail, 
@@ -73,7 +72,6 @@ function EditProductPage() {
         isExisting: true 
       };
     } else if (thumbnail && typeof thumbnail === 'object') {
-      // If it's already an object, ensure it has the required properties
       return {
         name: thumbnail.name || thumbnail.filename || 'thumbnail',
         image: thumbnail.image || thumbnail.url || thumbnail.src || thumbnail,
@@ -87,29 +85,58 @@ function EditProductPage() {
     return null;
   };
 
+  // NEW: Helper function to normalize category data
+  const normalizeCategoryData = (categoryData) => {
+    // If it's already a number (ID), return it
+    if (typeof categoryData === 'number') {
+      return categoryData;
+    }
+    
+    // If it's a string that can be parsed as a number
+    if (typeof categoryData === 'string' && !isNaN(parseInt(categoryData))) {
+      return parseInt(categoryData);
+    }
+    
+    // If it's an object with an id property
+    if (typeof categoryData === 'object' && categoryData !== null) {
+      if (categoryData.id) {
+        return parseInt(categoryData.id);
+      }
+      // Some APIs might return { category: id } structure
+      if (categoryData.category) {
+        return parseInt(categoryData.category);
+      }
+    }
+    
+    // Fallback: return null or empty string for select default
+    return '';
+  };
+
   useEffect(() => {
-    if (!id) {
+    if (!slug) {
       setDataLoading(false);
       return;
     }
 
     const loadProduct = async () => {
       try {
-        const data = await fetchProduct(id);
+        const data = await fetchProductBySlug(slug);
         
         console.log('Raw product data:', data); // Debug log
         
-        // Normalize images and thumbnail for ProductForm
+        // Normalize all data including category
         const normalizedImages = normalizeImageData(data.images);
         const normalizedThumbnail = normalizeThumbnailData(data.thumbnail_image);
+        const normalizedCategory = normalizeCategoryData(data.category);
         
-        console.log('Normalized images:', normalizedImages); // Debug log
-        console.log('Normalized thumbnail:', normalizedThumbnail); // Debug log
+        console.log('Normalized category:', normalizedCategory); // Debug log
+        console.log('Available categories:', categories); // Debug log
           
         setInitialData({ 
           ...data, 
           images: normalizedImages,
           thumbnail_image: normalizedThumbnail,
+          category: normalizedCategory, // Use normalized category
           meta_title: data.meta_title || '',
           meta_description: data.meta_description || ''
         });
@@ -123,7 +150,7 @@ function EditProductPage() {
     };
 
     loadProduct();
-  }, [id]);
+  }, [slug, categories]); // Add categories as dependency to re-run when categories are loaded
 
   const handleSubmit = async (formData) => {
     if (isLoading) return;
@@ -131,18 +158,16 @@ function EditProductPage() {
     setIsLoading(true);
     
     try {
-      console.log('Submitting form data:', formData); // Debug log
-      await editProduct(id, formData);
+      console.log('Submitting form data:', formData);
+      await editProduct(category_slug, slug, formData); 
       toast.success("Product updated successfully!");
       router.push("/admin/products");
     } catch (error) {
       console.error('Edit product error:', error);
       
-      // Handle specific error cases
       if (error.response?.data) {
         const errorData = error.response.data;
         
-        // Handle validation errors
         if (errorData.non_field_errors) {
           errorData.non_field_errors.forEach(err => {
             if (err.includes('name, category must make a unique set')) {
@@ -180,7 +205,7 @@ function EditProductPage() {
     router.push("/admin/products");
   };
 
-  if (!id) {
+  if (!slug) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">

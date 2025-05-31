@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 // Add this configuration at the top
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 

@@ -15,8 +15,8 @@ export default function Navbar() {
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileMenu();
 
   return (
-    <nav className="bg-white shadow-sm relative z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+    <nav className="relative z-20 bg-white shadow-sm">
+      <div className="flex items-center justify-between h-20 px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center gap-4">
           <Link href="/">
@@ -34,19 +34,19 @@ export default function Navbar() {
         <DesktopNav categories={filteredCategories} />
 
         {/* Right Section */}
-        <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-4">
           <AuthLinks />
           <CartIcon />
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden ml-2 p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className="p-1 ml-2 rounded-md md:hidden focus:outline-none focus:ring-2 focus:ring-pink-500"
             onClick={toggleMobileMenu}
           >
             {isMobileMenuOpen ? (
-              <XIcon className="h-6 w-6 text-gray-700" />
+              <XIcon className="w-6 h-6 text-gray-700" />
             ) : (
-              <MenuIcon className="h-6 w-6 text-gray-700" />
+              <MenuIcon className="w-6 h-6 text-gray-700" />
             )}
           </button>
         </div>

@@ -7,8 +7,10 @@ import {
   ProductsCard,
   ProductsEmptyState,
 } from '../../../components/features/admin/products';
-import { fetchProducts, fetchCategories } from '../../../services';
-import { ArrowUpDown  , RefreshCw} from 'lucide-react';
+import { fetchCategories } from '../../../services/api/categoryService';
+import { deleteProduct, fetchProducts } from '../../../services/api/productService';
+import { ArrowUpDown, RefreshCw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -19,6 +21,7 @@ export default function AdminProducts() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [categories, setCategories] = useState([]);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -71,14 +74,62 @@ export default function AdminProducts() {
     }));
   };
 
-  const deleteProduct = (id) => {
-    setProducts(products.filter(p => p.id !== id));
-    setFilteredProducts(filteredProducts.filter(p => p.id !== id));
-    setShowDeleteConfirm(null);
-    setActiveDropdown(null);
+  // Helper function to get category slug
+  // Updated getCategorySlug function
+const getCategorySlug = (product, categories) => {
+  // First try to use the product's direct category_slug if available
+  if (product.category_slug) {
+    return product.category_slug;
+  }
+  
+  // Fallback 1: Check if product.category is an object with slug (some APIs return expanded relations)
+  if (product.category && typeof product.category === 'object' && product.category.slug) {
+    return product.category.slug;
+  }
+  
+  // Fallback 2: Find category by ID in the categories list
+  const categoryId = product.category;
+  if (categoryId && categories) {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (category) return category.slug;
+  }
+  
+  // Final fallback: Return a safe default or throw an error
+  console.error('Could not determine category slug for product:', product);
+  return 'uncategorized'; // Or throw an error if you prefer
+};
+
+  // Updated delete function that accepts category_slug and slug parameters
+  const handleDeleteProduct = async (category_slug, slug) => {
+    setIsDeleting(true);
+    try {
+      // Call the API to delete the product
+      await deleteProduct(category_slug, slug);
+      
+      // Update local state to remove the deleted product
+      setProducts(prevProducts => 
+        prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
+      );
+      setFilteredProducts(prevProducts => 
+        prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
+      );
+      
+      // Reset UI state
+      setShowDeleteConfirm(null);
+      setActiveDropdown(null);
+      
+      // Show success message
+      toast.success('Product deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      toast.error('Failed to delete product. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const confirmDelete = (id) => {
+    if (isDeleting) return; // Prevent multiple delete attempts
     setShowDeleteConfirm(id);
     setActiveDropdown(null);
   };
@@ -95,15 +146,15 @@ export default function AdminProducts() {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-3 sm:p-4 lg:p-6 bg-gray-50">
+      <div className="mx-auto max-w-7xl">
         <ProductsHeader onRefresh={loadData} />
         <ProductsSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-hidden bg-white rounded-lg shadow-sm">
           {filteredProducts.length > 0 ? (
             <>
-              <div className="hidden lg:block overflow-x-auto">
+              <div className="hidden overflow-x-auto lg:block">
                 <ProductsTable 
                   products={filteredProducts}
                   categories={categories}
@@ -112,11 +163,13 @@ export default function AdminProducts() {
                   showDeleteConfirm={showDeleteConfirm}
                   confirmDelete={confirmDelete}
                   cancelDelete={cancelDelete}
+                  onDelete={handleDeleteProduct}
+                  isDeleting={isDeleting}
                 />
               </div>
 
               <div className="lg:hidden">
-                <div className="p-3 sm:p-4 border-b border-gray-200 bg-gray-50">
+                <div className="p-3 border-b border-gray-200 sm:p-4 bg-gray-50">
                   <div className="flex flex-wrap gap-2">
                     {['name', 'price', 'stock'].map(key => (
                       <button
@@ -146,6 +199,8 @@ export default function AdminProducts() {
                       cancelDelete={cancelDelete}
                       activeDropdown={activeDropdown}
                       toggleDropdown={toggleDropdown}
+                      onDelete={handleDeleteProduct}
+                      isDeleting={isDeleting}
                     />
                   ))}
                 </div>

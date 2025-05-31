@@ -1,5 +1,5 @@
 import { Package } from 'lucide-react';
-
+import Image from 'next/image';
 const OrderItems = ({ items }) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

@@ -1,8 +1,9 @@
 "use client";
 import Link from 'next/link';
-import { Package, MoreVertical, X } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { ProductsActions } from './ProductsActions';
 import { formatPrice, getStockStatus, getCategoryName } from './productsUtils';
+import Image from 'next/image';
 
 export const ProductsCard = ({ 
   product, 
@@ -11,25 +12,39 @@ export const ProductsCard = ({
   confirmDelete, 
   cancelDelete,
   activeDropdown,
-  toggleDropdown
+  toggleDropdown,
+  onDelete,
+  isDeleting
 }) => {
   const stockStatus = getStockStatus(product.stock);
+  
+  // Helper function to get category slug
+  const getCategorySlug = (product, categories) => {
+    if (product.category_slug) {
+      return product.category_slug;
+    }
+    // Fallback: find category slug by category ID
+    const category = categories?.find(cat => cat.id === product.category);
+    return category?.slug || 'unknown';
+  };
+
+  const categorySlug = getCategorySlug(product, categories);
+  const editUrl = `/admin/products/edit?slug=${typeof product.slug === 'string' ? product.slug : product.slug.current}&category=${categorySlug}`;
 
   return (
     <div className="p-3 transition-colors sm:p-4 hover:bg-gray-50">
       <div className="flex items-start space-x-3 sm:space-x-4">
         <div className="flex-shrink-0 w-12 h-12 overflow-hidden rounded-lg sm:h-16 sm:w-16">
           {product.images?.length > 0 ? (
-
             <div className="relative w-full h-full">
-          <Image
-            src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
-            alt={product.name}
-            fill
-            className="object-cover"
-            unoptimized // remove this if you configure allowed domains
-          />
-        </div>
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+                alt={product.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
           ) : (
             <div className="flex items-center justify-center w-full h-full text-gray-500 bg-gray-200">
               <Package className="w-6 h-6 sm:h-8 sm:w-8" />
@@ -41,7 +56,7 @@ export const ProductsCard = ({
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <Link
-                href={`/admin/products/edit?id=${product.id}`}
+                href={editUrl}
                 className="block text-sm font-medium text-blue-600 truncate sm:text-base hover:underline"
               >
                 {product.name}
@@ -55,14 +70,17 @@ export const ProductsCard = ({
             </div>
 
             <ProductsActions 
-              productId={product.id}
+              product={product}
+              categories={categories}
               showDeleteConfirm={showDeleteConfirm}
               confirmDelete={confirmDelete}
               cancelDelete={cancelDelete}
-              editHref={`/admin/products/edit?id=${product.id}`}
+              editHref={editUrl}
               activeDropdown={activeDropdown}
               toggleDropdown={toggleDropdown}
               isMobile
+              onDelete={onDelete}
+              isDeleting={isDeleting}
             />
           </div>
 

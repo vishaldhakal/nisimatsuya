@@ -121,7 +121,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
       </button>
 
       
-      <Link href={`/products/${product.slug}`} className="block h-full">
+      <Link href={`/products/${typeof product.slug === 'string' ? product.slug : product.slug.current}`} className="block h-full">
         <div className="relative flex flex-col h-full p-4 bg-white">
           <div className="relative flex items-center justify-center flex-1 p-2 mb-3">
            <Image

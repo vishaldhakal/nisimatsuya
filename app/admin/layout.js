@@ -28,17 +28,7 @@ export default function AdminLayout({ children }) {
               <a href="/admin" className="text-gray-700 hover:text-gray-900">Dashboard</a>
               <a href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</a>
               <a href="/admin/orders" className="text-gray-700 hover:text-gray-900">Orders</a>
-              <a 
-                href="/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center text-blue-600 hover:text-blue-800"
-              >
-                View Website
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
+             
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');
@@ -66,18 +56,7 @@ export default function AdminLayout({ children }) {
               <a href="/admin" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Dashboard</a>
               <a href="/admin/products" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Products</a>
               <a href="/admin/orders" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Orders</a>
-              <a 
-                href="/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center text-blue-600 hover:text-blue-800"
-                onClick={() => setMenuOpen(false)}
-              >
-                View Website
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
+              
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');

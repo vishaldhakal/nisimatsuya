@@ -67,8 +67,8 @@ const ProductsList2 = ({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="py-12 mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="bg-gray-200 rounded-lg h-80 animate-pulse"></div>
           ))}
@@ -79,7 +79,7 @@ const ProductsList2 = ({
 
   if (sortedProducts.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto py-12 text-center">
+      <div className="py-12 mx-auto text-center max-w-7xl">
         <h3 className="text-lg font-medium text-gray-900">No products found</h3>
         <p className="mt-1 text-sm text-gray-500">
           Try adjusting your search or filter criteria
@@ -90,8 +90,8 @@ const ProductsList2 = ({
 
   return (
     <div>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}

@@ -13,9 +13,7 @@ export const ProductImageGallery = ({ product, selectedImage, setSelectedImage }
     setMousePosition({ x, y });
   };
 
-  const discountPercentage = product.market_price && product.market_price > product.price
-    ? Math.round(((product.market_price - product.price) / product.market_price) * 100)
-    : 0;
+  const discountPercentage = product.discount;
 
   return (
     <div className="space-y-4">
