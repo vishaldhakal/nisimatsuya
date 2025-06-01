@@ -15,26 +15,10 @@ const handleError = (error, defaultMsg) => {
   throw new Error(data?.message || error.message || defaultMsg);
 };
 
-export const addCategory = async (data) => {
-  try {
-    const res = await axiosInstance.get('/api/categories/', data);
-    return res.data;
-  } catch (e) { handleError(e, 'Failed to add category'); }
-};
 
-export const editCategory = async (id, data) => {
-  try {
-    const res = await axiosInstance.put(`/api/categories/${id}/`, data);
-    return res.data;
-  } catch (e) { handleError(e, 'Failed to edit category'); }
-};
 
-export const fetchCategory = async (id) => {
-  try {
-    const res = await axiosInstance.get(`/api/categories/${id}/`);
-    return res.data;
-  } catch (e) { handleError(e, 'Failed to fetch category'); }
-};
+
+
 
 export const fetchCategories = async () => {
   try {

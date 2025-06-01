@@ -97,7 +97,6 @@ const appendThumbnailToFormData = (formData, thumbnail) => {
   }
 };
 
-// Helper function to get category slug by ID
 const getCategorySlugById = async (categoryId) => {
   try {
     const response = await axiosInstance.get('/api/categories/');
@@ -109,7 +108,7 @@ const getCategorySlugById = async (categoryId) => {
   }
 };
 
-// MAIN API FUNCTIONS
+
 
 export const fetchProducts = async () => {
   try {
@@ -120,16 +119,6 @@ export const fetchProducts = async () => {
   }
 };
 
-export const fetchCategories = async () => {
-  try {
-    const response = await axiosInstance.get('/api/categories/');
-    return response.data;
-  } catch (e) {
-    handleError(e, 'Failed to fetch categories');
-  }
-};
-
-// PRIMARY METHOD: Fetch product using category_slug and slug
 export const fetchProductByCategoryAndSlug = async (category_slug, slug) => {
   try {
     const res = await axiosInstance.get(`/api/products/${category_slug}/${slug}/`);
@@ -139,13 +128,10 @@ export const fetchProductByCategoryAndSlug = async (category_slug, slug) => {
   }
 };
 
-// DEPRECATED: Use fetchProductByCategoryAndSlug instead
-// This function now finds the category first, then calls the proper endpoint
+
 export const fetchProductBySlug = async (slug) => {
   try {
-    console.warn('fetchProductBySlug is deprecated. Use fetchProductByCategoryAndSlug instead.');
-    
-    // Get all products to find the matching slug and its category
+  
     const products = await fetchProducts();
     const product = products.find(p => p.slug === slug);
     
@@ -307,26 +293,6 @@ export const fetchSimilarProducts = async ( slug) => {
     }
   }
 
-// DEPRECATED FUNCTIONS (kept for backward compatibility)
-export const addProductWithoutImages = async (data) => {
-  console.warn('addProductWithoutImages is deprecated. Use addProduct instead.');
-  try {
-    const { images, id, ...productData } = data;
-    const cleanData = cleanProductData(productData);
-    return (await axiosInstance.post('/api/products/', cleanData, {
-      headers: { 'Content-Type': 'application/json' }
-    })).data;
-  } catch (e) { handleError(e, 'Failed to add product'); }
-};
 
-export const uploadProductImages = async (productId, images) => {
-  console.warn('uploadProductImages is deprecated. Use addProduct or editProduct with images instead.');
-  try {
-    const formData = new FormData();
-    images.forEach(img => img.file && formData.append('images', img.file));
-    return (await axiosInstance.post(`/api/products/${productId}/images/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }, 
-      timeout: 30000,
-    })).data;
-  } catch (e) { handleError(e, 'Failed to upload images'); }
-};
+
+

@@ -5,15 +5,10 @@ export {
   fetchProduct,
   addProduct,
   editProduct,
-  addProductWithoutImages,
-  uploadProductImages
 } from './api/productService';
 
 
 export {
-  addCategory,
-  editCategory,
-  fetchCategory,
   fetchCategories,
   fetchProductsByCategory,
   fetchAllProducts,

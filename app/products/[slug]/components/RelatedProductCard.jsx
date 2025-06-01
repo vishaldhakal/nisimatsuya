@@ -64,8 +64,24 @@ export const RelatedProductCard = ({ product }) => {
     return productId ? String(productId) : 'product';
   };
 
-  
-  const productUrl = `/products/${typeof product.slug === 'string' ? product.slug : product.slug.current}}`;
+  // FIXED: Generate proper product URL based on available data
+  const getProductUrl = () => {
+    const slug = getSlugString(product.slug);
+    const categorySlug = product.category_slug || product.category?.slug;
+    
+    if (categorySlug && slug) {
+      // Use the full category/slug path if both are available
+      return `/products/${categorySlug}/${slug}`;
+    } else if (slug) {
+      // Fallback to just slug if category is not available
+      return `/products/${slug}`;
+    } else {
+      // Last resort - use product ID
+      return `/products/product/${productId}`;
+    }
+  };
+
+  const productUrl = getProductUrl();
 
   // Get image URL safely
   const getImageUrl = () => {
