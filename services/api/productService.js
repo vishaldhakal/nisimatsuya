@@ -246,10 +246,11 @@ export const fetchProductById = async (id) => {
 export const fetchProduct = fetchProductById;
 
 
-export const deleteProduct = async (category_slug, slug) => {
+export const deleteProduct = async (categorySlug, slug) => {
+  
   try {
-    console.log(`Deleting product: ${category_slug}/${slug}`);
-    await axiosInstance.delete(`/api/products/${category_slug}/${slug}/`);
+    console.log(`Deleting product: ${categorySlug}/${slug}`);
+    await axiosInstance.delete(`/api/products/${categorySlug}/${slug}/`);
     return { success: true, message: 'Product deleted successfully' };
   } catch (e) { 
     console.error('Error deleting product:', e);

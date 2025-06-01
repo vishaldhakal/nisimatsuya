@@ -17,11 +17,11 @@ export const ProductsActions = ({
 }) => {
   // Helper function to get category slug
   const getCategorySlug = (product, categories) => {
-    if (product.category_slug) {
-      return product.category_slug;
+    if (product.category.slug) {
+      return product.category.slug;
     }
     // Fallback: find category slug by category ID
-    const category = categories?.find(cat => cat.id === product.category);
+    const category = categories?.find(cat => cat.slug=== product.category);
     return category?.slug || 'unknown';
   };
 
