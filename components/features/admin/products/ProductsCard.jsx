@@ -20,11 +20,19 @@ export const ProductsCard = ({
   
   // Helper function to get category slug
   const getCategorySlug = (product, categories) => {
+    // If product has category as an object with slug
+    if (product.category && typeof product.category === 'object' && product.category.slug) {
+      return product.category.slug;
+    }
+    
+    // If product has category_slug property
     if (product.category_slug) {
       return product.category_slug;
     }
+    
     // Fallback: find category slug by category ID
-    const category = categories?.find(cat => cat.id === product.category);
+    const categoryId = typeof product.category === 'object' ? product.category.id : product.category;
+    const category = categories?.find(cat => cat.id === categoryId);
     return category?.slug || 'unknown';
   };
 

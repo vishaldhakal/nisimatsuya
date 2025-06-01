@@ -12,7 +12,7 @@ export const useProductsFilter = (initialCategory = "all") => {
   // Applied states - search updates in real-time, filters need button click
   const [searchQuery, setSearchQuery] = useState(""); // Real-time search
   const [appliedCategory, setAppliedCategory] = useState(initialCategory);
-  const [appliedPriceRange, setAppliedPriceRange] = useState({ min: 0, max: 50000 });
+  const [appliedPriceRange, setAppliedPriceRange] = useState(null); // Changed to null for no filters
   const [appliedSortBy, setAppliedSortBy] = useState("featured");
 
   const [categories, setCategories] = useState([]);
@@ -26,21 +26,29 @@ export const useProductsFilter = (initialCategory = "all") => {
       .catch(() => setCategories([]));
   }, []);
 
+  // Helper function to check if price range is at default values
+  const isPriceRangeDefault = (priceRng) => {
+    return !priceRng || (priceRng.min === 0 && priceRng.max === 50000);
+  };
+
   // Debounced search function
   const loadProducts = useCallback(async (searchTerm, category, priceRng) => {
     setLoading(true);
     try {
       let data = [];
       
+      // Only pass price range if it's not at default values
+      const effectivePriceRange = isPriceRangeDefault(priceRng) ? null : priceRng;
+      
       if (searchTerm && searchTerm.trim()) {
         // Use search API when there's a search query
-        data = await searchProducts(searchTerm, priceRng, category);
+        data = await searchProducts(searchTerm, effectivePriceRange, category);
       } else if (category === "all") {
         // Fetch all products when no search and category is "all"
-        data = await fetchAllProducts(priceRng);
+        data = await fetchAllProducts(effectivePriceRange);
       } else {
         // Fetch products by category
-        data = await fetchProductsByCategory(category, priceRng);
+        data = await fetchProductsByCategory(category, effectivePriceRange);
       }
       
       setProducts(data || []);
@@ -74,7 +82,8 @@ export const useProductsFilter = (initialCategory = "all") => {
   // Apply filters (excluding search which is real-time)
   const handleApplyFilters = () => {
     setAppliedCategory(selectedCategory);
-    setAppliedPriceRange(priceRange);
+    // Only set price range if it's not at default values
+    setAppliedPriceRange(isPriceRangeDefault(priceRange) ? null : priceRange);
     setAppliedSortBy(sortBy);
   };
 
@@ -88,7 +97,7 @@ export const useProductsFilter = (initialCategory = "all") => {
     // Reset applied states
     setSearchQuery("");
     setAppliedCategory("all");
-    setAppliedPriceRange({ min: 0, max: 50000 });
+    setAppliedPriceRange(null); // Set to null instead of default range
     setAppliedSortBy("featured");
   };
 
@@ -142,7 +151,7 @@ export const useProductsFilter = (initialCategory = "all") => {
     
     // Applied states
     appliedCategory,
-    appliedPriceRange,
+    appliedPriceRange: appliedPriceRange || { min: 0, max: 50000 }, // Return default for UI display
     appliedSortBy,
     
     // Data

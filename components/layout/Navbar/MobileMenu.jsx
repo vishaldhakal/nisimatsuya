@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ChevronDownIcon, XIcon, User, ShoppingBag, LogOut } from "lucide-react";
+import { ChevronDownIcon, XIcon, User, ShoppingBag, Heart, LogOut } from "lucide-react";
 
 import { useAuth } from "../../../context/AuthContext/AuthContext";
 import { useJWTSession } from "../../../hooks/useJWTSession";
+import { useWishlist } from "../../../hooks/useWishlist";
 
 // JWT Decode function
 const decodeJWT = (token) => {
@@ -22,9 +23,16 @@ const decodeJWT = (token) => {
 };
 
 const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) => {
+  const { wishlist } = useWishlist();
+  const wishlistCount = wishlist?.length || 0;
+
   const handleLinkClick = () => {
     onClose();
   };
+
+  // Get display name and initial consistently
+  const displayName = userInfo?.first_name || userInfo?.name || "User";
+  const displayInitial = userInfo?.first_name?.[0] || userInfo?.name?.[0] || "U";
 
   return (
     <div className="border-b">
@@ -35,12 +43,15 @@ const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) =
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-600">
-              <User className="w-6 h-6 text-white" />
+            <div className="relative">
+              <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 font-bold text-white uppercase rounded-full shadow-md bg-gradient-to-br from-pink-400 to-pink-600">
+                {displayInitial}
+              </div>
+              <div className="absolute w-3 h-3 bg-green-400 border-2 border-white rounded-full -bottom-1 -right-1"></div>
             </div>
             <div className="flex-1 min-w-0 text-left">
               <h3 className="text-sm font-semibold text-gray-900 truncate">
-                {`${userInfo?.first_name || ''} ${userInfo?.last_name || ''}`.trim() || 'User'}
+                {displayName}
               </h3>
               <p className="text-xs text-gray-600 truncate">{userInfo?.email}</p>
             </div>
@@ -56,7 +67,7 @@ const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) =
       {/* User Action Links - Collapsible */}
       <div 
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-48' : 'max-h-0'
+          isOpen ? 'max-h-60' : 'max-h-0'
         }`}
       >
         <div className="px-4 py-3 space-y-1 bg-gradient-to-r from-pink-50 to-purple-50">
@@ -68,6 +79,23 @@ const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) =
             <User className="w-4 h-4 mr-3" />
             Profile
           </Link>
+          
+          <Link
+            href="/wishlist"
+            className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
+            onClick={handleLinkClick}
+          >
+            <div className="flex items-center">
+              <Heart className="w-4 h-4 mr-3" />
+              Wishlist
+            </div>
+            {wishlistCount > 0 && (
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-pink-500 rounded-full">
+                {wishlistCount > 99 ? '99+' : wishlistCount}
+              </span>
+            )}
+          </Link>
+          
           <Link
             href="/myorders"
             className="flex items-center px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg hover:bg-white hover:text-pink-600"
@@ -76,6 +104,7 @@ const UserProfileSection = ({ userInfo, onLogout, onClose, isOpen, onToggle }) =
             <ShoppingBag className="w-4 h-4 mr-3" />
             My Orders
           </Link>
+          
           <button
             onClick={() => {
               onLogout();
@@ -122,6 +151,7 @@ export default function MobileMenu({
             email: decodedToken.email,
             first_name: decodedToken.first_name,
             last_name: decodedToken.last_name,
+            name: decodedToken.name || `${decodedToken.first_name} ${decodedToken.last_name}`.trim(),
             phone: decodedToken.phone,
             address: decodedToken.address,
             user_id: decodedToken.user_id
@@ -230,8 +260,6 @@ export default function MobileMenu({
                   {link.label}
                 </Link>
               ))}
-
-       
             </div>
           </div>
           

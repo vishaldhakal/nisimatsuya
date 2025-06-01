@@ -28,7 +28,8 @@ export default function AdminLayout({ children }) {
               <a href="/admin" className="text-gray-700 hover:text-gray-900">Dashboard</a>
               <a href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</a>
               <a href="/admin/orders" className="text-gray-700 hover:text-gray-900">Orders</a>
-             
+              <a href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</a>
+              <a href="/admin/testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');
@@ -56,7 +57,8 @@ export default function AdminLayout({ children }) {
               <a href="/admin" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Dashboard</a>
               <a href="/admin/products" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Products</a>
               <a href="/admin/orders" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Orders</a>
-              
+              <a href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</a>
+              <a href="/admin/testimonials" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Testimonials</a>
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');

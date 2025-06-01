@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import ProductCard from "../ProductCard/ProductCard";
-import SkeletonCard from "../SkeletonCard/SkeletonCard"; // Adjust the import path as needed
+import SkeletonCard from "../SkeletonCard/SkeletonCard"; 
 import { fetchProducts } from "../../../../services";
 import SectionHeader from "../../../common/SectionHeader/SectionHeader";
 

@@ -27,7 +27,7 @@ export default function ProductsFilterSidebar({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+    <div className="sticky p-6 bg-white shadow-sm rounded-2xl top-6">
       {/* Search Bar */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -35,9 +35,9 @@ export default function ProductsFilterSidebar({
           {searchQuery && (
             <button
               onClick={handleClearSearch}
-              className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
             >
-              <X className="h-4 w-4" />
+              <X className="w-4 h-4" />
               Clear
             </button>
           )}
@@ -48,15 +48,15 @@ export default function ProductsFilterSidebar({
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
           />
-          <Search className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+          <Search className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
         </div>
       </div>
 
       {/* Sort Dropdown */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-4">Sort By</h2>
+        <h2 className="mb-4 text-lg font-semibold">Sort By</h2>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -72,7 +72,7 @@ export default function ProductsFilterSidebar({
 
       {/* Categories */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-4">Categories</h2>
+        <h2 className="mb-4 text-lg font-semibold">Categories</h2>
         <div className="space-y-2">
           <button
             key="all"
@@ -103,7 +103,7 @@ export default function ProductsFilterSidebar({
 
       {/* Price Range */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-4">Price Range</h2>
+        <h2 className="mb-4 text-lg font-semibold">Price Range</h2>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <input
@@ -114,7 +114,7 @@ export default function ProductsFilterSidebar({
               onChange={(e) =>
                 setPriceRange({ ...priceRange, min: Number(e.target.value) })
               }
-              className="w-1/2 border border-gray-300 rounded-lg p-2"
+              className="w-1/2 p-2 border border-gray-300 rounded-lg"
               placeholder="Min"
             />
             <input
@@ -125,11 +125,11 @@ export default function ProductsFilterSidebar({
               onChange={(e) =>
                 setPriceRange({ ...priceRange, max: Number(e.target.value) })
               }
-              className="w-1/2 border border-gray-300 rounded-lg p-2"
+              className="w-1/2 p-2 border border-gray-300 rounded-lg"
               placeholder="Max"
             />
           </div>
-          <div className="text-sm text-gray-600 flex justify-between">
+          <div className="flex justify-between text-sm text-gray-600">
             <span>₹{priceRange.min}</span>
             <span>₹{priceRange.max}</span>
           </div>
@@ -140,15 +140,15 @@ export default function ProductsFilterSidebar({
       <div className="space-y-3">
         <button
           onClick={handleApplyFilters}
-          className="w-full bg-gradient-to-r from-pink-600 to-pink-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-pink-700 hover:to-pink-600 transition-colors duration-200"
+          className="w-full px-6 py-3 font-semibold text-white transition-colors duration-200 bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600"
         >
           Apply Filters
         </button>
         <button
           onClick={handleClearAll}
-          className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2"
+          className="flex items-center justify-center w-full gap-2 px-6 py-3 font-semibold text-gray-700 transition-colors duration-200 bg-gray-100 rounded-xl hover:bg-gray-200"
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="w-4 h-4" />
           Clear All
         </button>
       </div>

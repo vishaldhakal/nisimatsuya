@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext/AuthContext";
+import { useWishlist } from "../../../hooks/useWishlist"; // Import wishlist hook
 
 export default function UserDropdown({ isMobile = false, onClose }) {
   const { user, logout } = useAuth();
+  const { wishlist } = useWishlist(); // Get wishlist data
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const displayName = user?.firstName || user?.name || "Profile";
   const displayInitial = user?.firstName?.[0] || user?.name?.[0] || "U";
+
+  // Get wishlist count
+  const wishlistCount = wishlist?.length || 0;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -64,6 +69,24 @@ export default function UserDropdown({ isMobile = false, onClose }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
           <span>Profile</span>
+        </Link>
+
+        <Link
+          href="/wishlist"
+          className="flex items-center justify-between gap-3 px-4 py-3 text-gray-700 transition-colors duration-200 rounded-lg hover:bg-pink-50"
+          onClick={onClose}
+        >
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z" />
+            </svg>
+            <span>Wishlist</span>
+          </div>
+          {wishlistCount > 0 && (
+            <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-pink-500 rounded-full">
+              {wishlistCount > 99 ? '99+' : wishlistCount}
+            </span>
+          )}
         </Link>
         
         <Link
@@ -132,6 +155,24 @@ export default function UserDropdown({ isMobile = false, onClose }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span>Profile</span>
+            </Link>
+
+            <Link
+              href="/wishlist"
+              className="flex items-center justify-between gap-3 px-4 py-3 text-gray-700 transition-colors duration-200 hover:bg-pink-50 hover:text-pink-600"
+              onClick={() => setOpen(false)}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z" />
+                </svg>
+                <span>Wishlist</span>
+              </div>
+              {wishlistCount > 0 && (
+                <span className="flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-pink-500 rounded-full">
+                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                </span>
+              )}
             </Link>
             
             <Link

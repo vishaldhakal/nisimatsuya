@@ -12,7 +12,9 @@ const nextConfig = {
       "b7bwr4s3-8000.inc1.devtunnels.msnull",
       "192.168.1.87",
       "http://192.168.1.87:8000null",
-      "descending-danish-ru-forestry.trycloudflare.com",
+      "kay-promised-savannah-sponsor.trycloudflare.com",
+      "novel-arrow-focal-room.trycloudflare.com",
+      "kay-promised-savannah-sponsor.trycloudflare.comhttp",
     ],
   },
 };

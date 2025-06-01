@@ -159,7 +159,20 @@ function EditProductPage() {
     
     try {
       console.log('Submitting form data:', formData);
-      await editProduct(category_slug, slug, formData); 
+      
+      // Get the original product data to access the full category object
+      const originalProductData = await fetchProductBySlug(slug);
+      
+      // Prepare the data with category object and slug
+      const submitData = {
+        ...formData,
+        slug: slug, // Add product slug
+        category: originalProductData.category // Use the original category object with slug
+      };
+      
+      console.log('Submit data with category:', submitData);
+      
+      await editProduct(submitData); // Pass the complete data object
       toast.success("Product updated successfully!");
       router.push("/admin/products");
     } catch (error) {

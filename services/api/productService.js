@@ -2,6 +2,12 @@ import axiosInstance from "../../lib/api/axiosInstance";
 
 const handleError = (error, defaultMsg) => {
   console.error('API Error:', error.response?.data || error.message);
+  
+  // Don't throw error for successful responses
+  if (error.response?.status >= 200 && error.response?.status < 300) {
+    return;
+  }
+  
   const data = error.response?.data;
   if (data) {
     if (typeof data === 'object') {
@@ -97,7 +103,7 @@ const appendThumbnailToFormData = (formData, thumbnail) => {
   }
 };
 
-const getCategorySlugById = async (categoryId) => {
+export const getCategorySlugById = async (categoryId) => {
   try {
     const response = await axiosInstance.get('/api/categories/');
     const category = response.data.find(cat => cat.id === categoryId);
@@ -108,35 +114,77 @@ const getCategorySlugById = async (categoryId) => {
   }
 };
 
-
-
+// FETCH PRODUCTS - Enhanced with better error handling
 export const fetchProducts = async () => {
   try {
+    console.log('Fetching products...');
     const response = await axiosInstance.get('/api/products/');
-    return response.data;
+    
+    console.log('Raw API response:', response);
+    console.log('Response status:', response.status);
+    console.log('Response data:', response.data);
+    
+    // Check if response is successful
+    if (response.status >= 200 && response.status < 300) {
+      // Ensure we return an array
+      const data = response.data;
+      if (Array.isArray(data)) {
+        console.log(`Successfully fetched ${data.length} products`);
+        return data;
+      } else {
+        console.warn('API returned non-array data:', data);
+        return [];
+      }
+    } else {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
   } catch (e) {
+    console.error('fetchProducts error:', e);
+    
+    // If it's a network error, provide more specific info
+    if (e.code === 'NETWORK_ERROR' || e.message.includes('Network Error')) {
+      throw new Error('Network connection failed. Please check your internet connection.');
+    }
+    
+    // If it's a server error, provide server status
+    if (e.response?.status >= 500) {
+      throw new Error('Server error. Please try again later.');
+    }
+    
+    // If it's an auth error
+    if (e.response?.status === 401 || e.response?.status === 403) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+    
     handleError(e, 'Failed to fetch products');
   }
 };
 
 export const fetchProductByCategoryAndSlug = async (category_slug, slug) => {
   try {
+    console.log(`Fetching product: ${category_slug}/${slug}`);
     const res = await axiosInstance.get(`/api/products/${category_slug}/${slug}/`);
+    console.log('Product fetch response:', res.data);
     return res.data;
   } catch (e) { 
+    console.error('fetchProductByCategoryAndSlug error:', e);
     handleError(e, 'Failed to fetch product'); 
   }
 };
 
-
 export const fetchProductBySlug = async (slug) => {
   try {
-  
+    console.log(`Fetching product by slug: ${slug}`);
+    
+    // First get all products
     const products = await fetchProducts();
+    console.log('All products for slug search:', products);
+    
     const product = products.find(p => p.slug === slug);
+    console.log('Found product:', product);
     
     if (!product) {
-      throw new Error('Product not found');
+      throw new Error(`Product with slug '${slug}' not found`);
     }
     
     // If product has category_slug, use it directly
@@ -144,7 +192,12 @@ export const fetchProductBySlug = async (slug) => {
       return await fetchProductByCategoryAndSlug(product.category_slug, slug);
     }
     
-    // Otherwise, fetch category info
+    // If product.category is an object with slug
+    if (product.category && typeof product.category === 'object' && product.category.slug) {
+      return await fetchProductByCategoryAndSlug(product.category.slug, slug);
+    }
+    
+    // Otherwise, fetch category info by ID
     const categorySlug = await getCategorySlugById(product.category);
     if (!categorySlug) {
       throw new Error('Product category not found');
@@ -153,19 +206,29 @@ export const fetchProductBySlug = async (slug) => {
     return await fetchProductByCategoryAndSlug(categorySlug, slug);
     
   } catch (e) { 
+    console.error('fetchProductBySlug error:', e);
     handleError(e, 'Failed to fetch product'); 
   }
 };
 
 export const fetchProductById = async (id) => {
   try {
+    console.log(`Fetching product by ID: ${id}`);
     const products = await fetchProducts();
     const product = products.find(p => p.id === parseInt(id));
-    if (!product) throw new Error('Product not found');
+    
+    if (!product) {
+      throw new Error(`Product with ID '${id}' not found`);
+    }
     
     // Use the proper category + slug method
     if (product.category_slug) {
       return await fetchProductByCategoryAndSlug(product.category_slug, product.slug);
+    }
+    
+    // If product.category is an object with slug
+    if (product.category && typeof product.category === 'object' && product.category.slug) {
+      return await fetchProductByCategoryAndSlug(product.category.slug, product.slug);
     }
     
     const categorySlug = await getCategorySlugById(product.category);
@@ -175,15 +238,17 @@ export const fetchProductById = async (id) => {
     
     return await fetchProductByCategoryAndSlug(categorySlug, product.slug);
   } catch (e) { 
+    console.error('fetchProductById error:', e);
     handleError(e, 'Failed to fetch product'); 
   }
 };
 
 export const fetchProduct = fetchProductById;
 
-// DELETE PRODUCT - Uses category_slug + slug (CORRECT APPROACH)
+
 export const deleteProduct = async (category_slug, slug) => {
   try {
+    console.log(`Deleting product: ${category_slug}/${slug}`);
     await axiosInstance.delete(`/api/products/${category_slug}/${slug}/`);
     return { success: true, message: 'Product deleted successfully' };
   } catch (e) { 
@@ -238,9 +303,9 @@ export const addProduct = async (data) => {
 };
 
 // EDIT PRODUCT - Uses category_slug + slug (CORRECT APPROACH)
-export const editProduct = async (category_slug, slug, data) => {
+export const editProduct = async (data) => {
   try {
-    const { images, meta_title, meta_description, thumbnail_image, ...productData } = data;
+    const { images, meta_title, meta_description, thumbnail_image, category, slug, ...productData } = data;
     const cleanData = cleanProductData(productData);
 
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
@@ -251,6 +316,24 @@ export const editProduct = async (category_slug, slug, data) => {
                            (!thumbnail_image.isExisting || thumbnail_image.file);
 
     const useFormData = hasImages || hasNewThumbnail;
+    
+    // Better category slug handling
+    let categorySlug = category?.slug;
+    
+    // If category is an object but no slug, try to get it from the category ID
+    if (!categorySlug && category) {
+      if (typeof category === 'object' && category.id) {
+        categorySlug = await getCategorySlugById(category.id);
+      } else if (typeof category === 'number') {
+        categorySlug = await getCategorySlugById(category);
+      }
+    }
+    
+    if (!categorySlug || !slug) {
+      throw new Error('Category slug and product slug are required for editing');
+    }
+
+    console.log(`Editing product: ${categorySlug}/${slug}`);
 
     if (useFormData) {
       const formData = new FormData();
@@ -262,7 +345,7 @@ export const editProduct = async (category_slug, slug, data) => {
       if (hasImages) appendImagesToFormData(formData, images);
       if (hasNewThumbnail) appendThumbnailToFormData(formData, thumbnail_image);
 
-      return (await axiosInstance.patch(`/api/products/${category_slug}/${slug}/`, formData, {
+      return (await axiosInstance.patch(`/api/products/${categorySlug}/${slug}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, 
         timeout: 30000,
       })).data;
@@ -272,7 +355,7 @@ export const editProduct = async (category_slug, slug, data) => {
         thumbnail_image: thumbnail_image?.image || null
       };
       delete jsonData.category;
-      return (await axiosInstance.patch(`/api/products/${category_slug}/${slug}/`, jsonData, {
+      return (await axiosInstance.patch(`/api/products/${categorySlug}/${slug}/`, jsonData, {
         headers: { 'Content-Type': 'application/json' }
       })).data;
     }
@@ -282,17 +365,12 @@ export const editProduct = async (category_slug, slug, data) => {
   }
 };
 
-
-export const fetchSimilarProducts = async ( slug) => {
-    try {
-      const res = await axiosInstance.get(`/api/products/${slug}/similar/`);
-      return res.data;
-    } catch (e2) {
-      console.error('Error fetching similar products:', e2);
-      return []; 
-    }
+export const fetchSimilarProducts = async (slug) => {
+  try {
+    const res = await axiosInstance.get(`/api/products/${slug}/similar/`);
+    return res.data;
+  } catch (e2) {
+    console.error('Error fetching similar products:', e2);
+    return []; 
   }
-
-
-
-
+}

@@ -16,10 +16,6 @@ const handleError = (error, defaultMsg) => {
 };
 
 
-
-
-
-
 export const fetchCategories = async () => {
   try {
     const res = await axiosInstance.get('/api/categories/');

@@ -2,33 +2,54 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart} from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../cart/CartContext";
+import { useWishlistToggle } from "../../../../hooks/useWishlist";
 import { useState, useEffect } from "react";
 
-const HeartIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-5 h-5 text-gray-300 transition-colors duration-200 hover:text-pink-400"
+const HeartIcon = ({ isInWishlist, onToggle, loading }) => (
+  <button 
+    onClick={onToggle}
+    disabled={loading}
+    className={`transition-all duration-200 ${loading ? 'animate-pulse' : ''}`}
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z"
-    />
-  </svg>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill={isInWishlist ? "currentColor" : "none"}
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={`w-5 h-5 transition-colors duration-200 ${
+        isInWishlist 
+          ? 'text-pink-500' 
+          : 'text-gray-300 hover:text-pink-400'
+      }`}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z"
+      />
+    </svg>
+  </button>
 );
 
 const ProductCard = ({ product, isSpecial = false }) => {
-  const { addToCart, totalItems } = useCart();
+  const { addToCart } = useCart();
+  
+  // Use the new TanStack Query wishlist toggle hook
+  const { 
+    isInWishlist, 
+    toggle: toggleWishlist, 
+    isLoading: wishlistLoading,
+    error: wishlistError 
+  } = useWishlistToggle(product.id);
+  
   const [isHovered, setIsHovered] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileCartButton, setShowMobileCartButton] = useState(false);
+  const [wishlistMessage, setWishlistMessage] = useState('');
 
   // Detect if we're on mobile
   useEffect(() => {
@@ -61,6 +82,23 @@ const ProductCard = ({ product, isSpecial = false }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
 
+  // Clear wishlist message after 3 seconds
+  useEffect(() => {
+    if (wishlistMessage) {
+      const timer = setTimeout(() => {
+        setWishlistMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [wishlistMessage]);
+
+  // Handle wishlist error display
+  useEffect(() => {
+    if (wishlistError) {
+      setWishlistMessage(wishlistError.message || 'Wishlist error');
+    }
+  }, [wishlistError]);
+
   const getBadge = () => {
     if (product.isNew) {
       return { type: "new", text: "NEW" };
@@ -79,7 +117,6 @@ const ProductCard = ({ product, isSpecial = false }) => {
     e.preventDefault();
     e.stopPropagation();
     
-   
     addToCart({
       id: product.id,
       name: product.name,
@@ -88,13 +125,29 @@ const ProductCard = ({ product, isSpecial = false }) => {
       thumbnail_image: product.thumbnail_image,
       price: product.price,
       perUnit: product.perUnit,
-      
       source: product.source || "unknown"
     }, 1);
     
     setIsAddedToCart(true);
     setTimeout(() => setIsAddedToCart(false), 10000);
+  };
 
+  // Handle wishlist toggle with TanStack Query
+  const handleWishlistToggle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      await toggleWishlist();
+      
+      if (isInWishlist) {
+        setWishlistMessage('Removed from wishlist');
+      } else {
+        setWishlistMessage('Added to wishlist ❤️');
+      }
+    } catch (error) {
+      setWishlistMessage(error.message || 'Please login to manage wishlist');
+    }
   };
 
   return (
@@ -116,22 +169,32 @@ const ProductCard = ({ product, isSpecial = false }) => {
         </div>
       )}
 
-      <button className="absolute z-10 top-3 right-3 bg-white rounded-full p-1.5 shadow hover:shadow-md">
-        <HeartIcon />
-      </button>
+      {/* Updated Heart Icon with TanStack Query */}
+      <div className="absolute z-10 top-3 right-3 bg-white rounded-full p-1.5 shadow hover:shadow-md">
+        <HeartIcon 
+          isInWishlist={isInWishlist}
+          onToggle={handleWishlistToggle}
+          loading={wishlistLoading}
+        />
+      </div>
 
+      {/* Wishlist feedback message */}
+      {wishlistMessage && (
+        <div className="absolute z-20 px-2 py-1 text-xs text-white bg-black rounded top-12 right-3 bg-opacity-80 animate-fade-in">
+          {wishlistMessage}
+        </div>
+      )}
       
       <Link href={`/products/${typeof product.slug === 'string' ? product.slug : product.slug.current}`} className="block h-full">
         <div className="relative flex flex-col h-full p-4 bg-white">
           <div className="relative flex items-center justify-center flex-1 p-2 mb-3">
-           <Image
-              src={ `${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+            <Image
+              src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
               alt={product.name}
               width={180}
               height={180}
               className="object-contain max-h-48"
             />
-            
             
             {/* Desktop hover add to cart */}
             {!isMobile && (
@@ -200,6 +263,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
           )}
         </div>
       </Link>
+           
       
       {/* Mobile: Floating add to cart button (alternative approach) */}
       {false && isMobile && !isAddedToCart && (
@@ -218,4 +282,3 @@ const ProductCard = ({ product, isSpecial = false }) => {
 };
 
 export default ProductCard;
-

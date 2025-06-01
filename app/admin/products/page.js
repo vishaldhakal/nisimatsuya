@@ -74,51 +74,43 @@ export default function AdminProducts() {
     }));
   };
 
-  // Helper function to get category slug
-  // Updated getCategorySlug function
-const getCategorySlug = (product, categories) => {
-  // First try to use the product's direct category_slug if available
-  if (product.category_slug) {
-    return product.category_slug;
-  }
   
-  // Fallback 1: Check if product.category is an object with slug (some APIs return expanded relations)
-  if (product.category && typeof product.category === 'object' && product.category.slug) {
-    return product.category.slug;
+const getCategorySlug = (product, categories = []) => {
+  if (product.category_slug) return product.category_slug;
+  if (product.category && typeof product.category === 'object' && product.category.slug) return product.category.slug;
+  if (product.category && typeof product.category === 'number' && categories.length > 0) {
+    const found = categories.find(cat => cat.id === product.category);
+    if (found) return found.slug;
   }
-  
-  // Fallback 2: Find category by ID in the categories list
-  const categoryId = product.category;
-  if (categoryId && categories) {
-    const category = categories.find(cat => cat.id === categoryId);
-    if (category) return category.slug;
-  }
-  
-  // Final fallback: Return a safe default or throw an error
   console.error('Could not determine category slug for product:', product);
-  return 'uncategorized'; // Or throw an error if you prefer
+  return 'unknown';
 };
 
   // Updated delete function that accepts category_slug and slug parameters
-  const handleDeleteProduct = async (category_slug, slug) => {
+  const handleDeleteProduct = async (categoryOrProduct, maybeSlug) => {
     setIsDeleting(true);
     try {
-      // Call the API to delete the product
+      // Support both (product, undefined) and (category_slug, slug) signatures
+      let category_slug, slug;
+      if (typeof categoryOrProduct === 'object') {
+        const product = categoryOrProduct;
+        category_slug = getCategorySlug(product, categories);
+        slug = product.slug;
+      } else {
+        category_slug = categoryOrProduct;
+        slug = maybeSlug;
+      }
+
       await deleteProduct(category_slug, slug);
-      
-      // Update local state to remove the deleted product
+
       setProducts(prevProducts => 
         prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
       );
       setFilteredProducts(prevProducts => 
         prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
       );
-      
-      // Reset UI state
       setShowDeleteConfirm(null);
       setActiveDropdown(null);
-      
-      // Show success message
       toast.success('Product deleted successfully!');
     } catch (error) {
       console.error('Failed to delete product:', error);

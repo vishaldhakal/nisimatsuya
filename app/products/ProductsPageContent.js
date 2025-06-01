@@ -49,11 +49,11 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Search Results Header */}
         {searchQuery && (
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="mb-2 text-2xl font-bold text-gray-900">
               Search Results for "{searchQuery}"
             </h1>
             <p className="text-gray-600">
@@ -62,9 +62,9 @@ export default function ProductsPage() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar */}
-          <div className="lg:w-80 flex-shrink-0">
+          <div className="flex-shrink-0 lg:w-80">
             <ProductsFilterSidebar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -85,9 +85,9 @@ export default function ProductsPage() {
           {/* Mobile Filter Button */}
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg mb-4"
+            className="flex items-center gap-2 px-4 py-2 mb-4 bg-white border border-gray-300 rounded-lg lg:hidden"
           >
-            <Filter className="h-5 w-5" />
+            <Filter className="w-5 h-5" />
             Filters
           </button>
 
