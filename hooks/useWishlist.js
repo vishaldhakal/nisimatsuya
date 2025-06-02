@@ -6,9 +6,6 @@ import {
   useWishlistQuery,
   useAddToWishlistMutation,
   useRemoveFromWishlistMutation,
-  useRemoveFromWishlistByProductIdMutation,
-  useClearWishlistMutation,
-  useMoveToCartMutation,
   useIsInWishlist,
   useWishlistItemByProductId
 } from '../queries/wishlistQueries';
@@ -26,11 +23,8 @@ export const useWishlist = () => {
   } = useWishlistQuery();
 
   // Mutations
-  const addToWishlistMutation = useAddToWishlistMutation();
-  const removeFromWishlistMutation = useRemoveFromWishlistMutation();
-  const removeFromWishlistByProductIdMutation = useRemoveFromWishlistByProductIdMutation();
-  const clearWishlistMutation = useClearWishlistMutation();
-
+  const addMutation = useAddToWishlistMutation();
+  const removeMutation = useRemoveFromWishlistMutation();
 
   // Helper function to show toast messages
   const showToast = (message) => {
@@ -46,7 +40,7 @@ export const useWishlist = () => {
     }
 
     try {
-      await addToWishlistMutation.mutateAsync(productId);
+      await addMutation.mutateAsync(productId);
       showToast('Added to wishlist ❤️');
       return true;
     } catch (error) {
@@ -59,15 +53,22 @@ export const useWishlist = () => {
     }
   };
 
-  // Remove from wishlist by wishlist item ID
-  const removeFromWishlist = async (wishlistItemId) => {
+  // Remove from wishlist by product ID (find item first)
+  const removeFromWishlistByProductId = async (productId) => {
     if (!user) {
       showToast('Please login to manage wishlist.');
       return false;
     }
 
+    const wishlistItem = wishlist.find(item => item.product?.id === productId);
+    
+    if (!wishlistItem) {
+      showToast('Item not found in wishlist');
+      return false;
+    }
+
     try {
-      await removeFromWishlistMutation.mutateAsync(wishlistItemId);
+      await removeMutation.mutateAsync(wishlistItem.id);
       showToast('Removed from wishlist');
       return true;
     } catch (error) {
@@ -80,69 +81,10 @@ export const useWishlist = () => {
     }
   };
 
-  // Remove from wishlist by product ID
-  const removeFromWishlistByProductId = async (productId) => {
-    if (!user) {
-      showToast('Please login to manage wishlist.');
-      return false;
-    }
-
-    // First try to find the wishlist item locally
-    const wishlistItem = wishlist.find(item => item.product?.id === productId);
-    
-    if (wishlistItem) {
-      // Use the wishlist item ID if we have it
-      return removeFromWishlist(wishlistItem.id);
-    } else {
-      // Fallback to remove by product ID (if backend supports it)
-      try {
-        await removeFromWishlistByProductIdMutation.mutateAsync(productId);
-        showToast('Removed from wishlist');
-        return true;
-      } catch (error) {
-        const errorMessage = error.response?.data?.detail || 
-                            error.response?.data?.message || 
-                            error.message || 
-                            'Failed to remove from wishlist';
-        showToast(errorMessage);
-        return false;
-      }
-    }
-  };
-
-  // Check if product is in wishlist (client-side)
+  // Check if product is in wishlist
   const isInWishlist = (productId) => {
     return wishlist.some(item => item.product?.id === productId);
   };
-
-  // Get wishlist item by product ID
-  const getWishlistItemByProductId = (productId) => {
-    return wishlist.find(item => item.product?.id === productId) || null;
-  };
-
-  // Clear entire wishlist
-  const clearWishlist = async () => {
-    if (!user) {
-      showToast('Please login to manage wishlist.');
-      return false;
-    }
-
-    try {
-      await clearWishlistMutation.mutateAsync();
-      showToast('Wishlist cleared');
-      return true;
-    } catch (error) {
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
-                          'Failed to clear wishlist';
-      showToast(errorMessage);
-      return false;
-    }
-  };
-
-  // Move item to cart
- 
 
   // Toggle wishlist (add if not present, remove if present)
   const toggleWishlist = async (productId) => {
@@ -156,34 +98,19 @@ export const useWishlist = () => {
   return {
     // Data
     wishlist,
-    loading: loading || 
-             addToWishlistMutation.isPending || 
-             removeFromWishlistMutation.isPending || 
-             removeFromWishlistByProductIdMutation.isPending || 
-             clearWishlistMutation.isPending ,
-          
-    error: error?.message || 
-           addToWishlistMutation.error?.message || 
-           removeFromWishlistMutation.error?.message || 
-           removeFromWishlistByProductIdMutation.error?.message || 
-           clearWishlistMutation.error?.message ,
-           
+    loading: loading || addMutation.isPending || removeMutation.isPending,
+    error: error?.message || addMutation.error?.message || removeMutation.error?.message,
     
     // Actions
     addToWishlist,
-    removeFromWishlist,
     removeFromWishlistByProductId,
     isInWishlist,
-    getWishlistItemByProductId,
-    clearWishlist,
-    
     toggleWishlist,
     refetch,
 
     // Mutation states
-    isAddingToWishlist: addToWishlistMutation.isPending,
-    isRemovingFromWishlist: removeFromWishlistMutation.isPending || removeFromWishlistByProductIdMutation.isPending,
-    isClearingWishlist: clearWishlistMutation.isPending,
+    isAddingToWishlist: addMutation.isPending,
+    isRemovingFromWishlist: removeMutation.isPending,
 
     // Toast message
     toastMessage,
@@ -192,17 +119,12 @@ export const useWishlist = () => {
 };
 
 // Individual hooks for specific use cases
-export const useWishlistItem = (productId) => {
-  const { data: wishlist = [] } = useWishlistQuery();
-  return wishlist.find(item => item.product?.id === productId) || null;
-};
-
 export const useWishlistCount = () => {
   const { data: wishlist = [] } = useWishlistQuery();
   return wishlist.length;
 };
 
-// Hook specifically for wishlist toggle functionality
+// Hook for wishlist toggle functionality
 export const useWishlistToggle = (productId) => {
   const { user } = useAuth();
   const isInWishlist = useIsInWishlist(productId);
