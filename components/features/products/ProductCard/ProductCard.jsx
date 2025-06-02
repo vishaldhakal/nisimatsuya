@@ -1,55 +1,28 @@
+
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../cart/CartContext";
-import { useWishlistToggle } from "../../../../hooks/useWishlist";
 import { useState, useEffect } from "react";
-
-const HeartIcon = ({ isInWishlist, onToggle, loading }) => (
-  <button 
-    onClick={onToggle}
-    disabled={loading}
-    className={`transition-all duration-200 ${loading ? 'animate-pulse' : ''}`}
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill={isInWishlist ? "currentColor" : "none"}
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className={`w-5 h-5 transition-colors duration-200 ${
-        isInWishlist 
-          ? 'text-pink-500' 
-          : 'text-gray-300 hover:text-pink-400'
-      }`}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.54 0-2.878.792-3.562 2.008C11.188 4.542 9.85 3.75 8.312 3.75 5.723 3.75 3.625 5.765 3.625 8.25c0 7.22 8.375 11.25 8.375 11.25s8.375-4.03 8.375-11.25z"
-      />
-    </svg>
-  </button>
-);
-
+import WishlistButton from '../../../../components/ui/WishlistButton';
+import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
+const getImageUrl = (imageUrl) => {
+  // If the image URL already starts with http/https, use it as is
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+  // Otherwise, prepend the API URL
+  return `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+};
 const ProductCard = ({ product, isSpecial = false }) => {
   const { addToCart } = useCart();
-  
-  // Use the new TanStack Query wishlist toggle hook
-  const { 
-    isInWishlist, 
-    toggle: toggleWishlist, 
-    isLoading: wishlistLoading,
-    error: wishlistError 
-  } = useWishlistToggle(product.id);
+  const { showNotification } = useWishlistNotification();
   
   const [isHovered, setIsHovered] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [showMobileCartButton, setShowMobileCartButton] = useState(false);
-  const [wishlistMessage, setWishlistMessage] = useState('');
 
   // Detect if we're on mobile
   useEffect(() => {
@@ -63,56 +36,6 @@ const ProductCard = ({ product, isSpecial = false }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Show mobile cart button when scrolling on product
-  useEffect(() => {
-    if (!isMobile) return;
-    
-    const handleScroll = () => {
-      setShowMobileCartButton(true);
-      
-      // Hide after 3 seconds of no scroll
-      const timeout = setTimeout(() => {
-        setShowMobileCartButton(false);
-      }, 3000);
-      
-      return () => clearTimeout(timeout);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMobile]);
-
-  // Clear wishlist message after 3 seconds
-  useEffect(() => {
-    if (wishlistMessage) {
-      const timer = setTimeout(() => {
-        setWishlistMessage('');
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [wishlistMessage]);
-
-  // Handle wishlist error display
-  useEffect(() => {
-    if (wishlistError) {
-      setWishlistMessage(wishlistError.message || 'Wishlist error');
-    }
-  }, [wishlistError]);
-
-  const getBadge = () => {
-    if (product.isNew) {
-      return { type: "new", text: "NEW" };
-    } else if (product.isPopular) {
-      return { type: "popular", text: "POPULAR" };
-    } else if (product.mrp > product.price) {
-      const discountPercentage = Math.round(((product.mrp - product.price) / product.mrp) * 100);
-      return { type: "discount", text: `${discountPercentage}%` };
-    }
-    return null;
-  };
-
-  const badge = getBadge();
-
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -121,7 +44,7 @@ const ProductCard = ({ product, isSpecial = false }) => {
       id: product.id,
       name: product.name,
       image: product.image,
-      mrp: product.mrp,
+      mrp: product.mrp || product.market_price, // Support both field names
       thumbnail_image: product.thumbnail_image,
       price: product.price,
       perUnit: product.perUnit,
@@ -132,64 +55,60 @@ const ProductCard = ({ product, isSpecial = false }) => {
     setTimeout(() => setIsAddedToCart(false), 10000);
   };
 
-  // Handle wishlist toggle with TanStack Query
-  const handleWishlistToggle = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    try {
-      await toggleWishlist();
-      
-      if (isInWishlist) {
-        setWishlistMessage('Removed from wishlist');
-      } else {
-        setWishlistMessage('Added to wishlist ❤️');
-      }
-    } catch (error) {
-      setWishlistMessage(error.message || 'Please login to manage wishlist');
+  // Handle wishlist feedback
+  const handleWishlistToggle = (wasInWishlist, productId) => {
+    if (wasInWishlist) {
+      showNotification('Removed from wishlist', 'info');
+    } else {
+      showNotification('Added to wishlist ❤️', 'success');
     }
   };
+
+ 
+ 
+
+  const discountPercentage = product.discount;
+  const marketPrice = product.market_price || product.mrp;
+  const sellingPrice = product.price;
 
   return (
     <div 
       className={`relative ${isSpecial ? 'aspect-square' : ''} rounded-3xl overflow-hidden transition-all duration-300 ${isHovered ? 'shadow-lg scale-[1.02]' : 'shadow-md'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => setShowMobileCartButton(true)}
     >
       <div className="absolute inset-0 border-2 border-pink-100 rounded-3xl"></div>
       
-      {badge && (
-        <div className={`absolute z-10 top-3 left-3 px-2 py-1 text-xs font-bold rounded-full 
-          ${badge.type === 'new' ? 'bg-orange-100 text-orange-600' : 
-            badge.type === 'popular' ? 'bg-pink-100 text-pink-600' : 
-            'bg-red-100 text-red-600'}`}
-        >
-          {badge.text}
-        </div>
-      )}
-
-      {/* Updated Heart Icon with TanStack Query */}
-      <div className="absolute z-10 top-3 right-3 bg-white rounded-full p-1.5 shadow hover:shadow-md">
-        <HeartIcon 
-          isInWishlist={isInWishlist}
-          onToggle={handleWishlistToggle}
-          loading={wishlistLoading}
-        />
+      {/* Badges Section */}
+      <div className="absolute z-10 flex gap-2 top-3 left-3">
+        {product.is_featured && (
+          <span className="px-2 py-1 text-xs font-medium text-orange-600 bg-orange-100 rounded-full">FEATURED</span>
+        )}
+        {product.is_popular && (
+          <span className="px-2 py-1 text-xs font-medium text-pink-600 bg-pink-100 rounded-full">POPULAR</span>
+        )}
+        {product.isNew && (
+          <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">NEW</span>
+        )}
+        
       </div>
 
-      {/* Wishlist feedback message */}
-      {wishlistMessage && (
-        <div className="absolute z-20 px-2 py-1 text-xs text-white bg-black rounded top-12 right-3 bg-opacity-80 animate-fade-in">
-          {wishlistMessage}
-        </div>
-      )}
+      {/* Wishlist Button */}
+      <div className="absolute z-10 top-3 right-3">
+        <WishlistButton
+          productId={product.id}
+          size="sm"
+          variant="default"
+          className="shadow hover:shadow-md"
+          onToggle={handleWishlistToggle}
+        />
+      </div>
       
       <Link href={`/products/${typeof product.slug === 'string' ? product.slug : product.slug.current}`} className="block h-full">
         <div className="relative flex flex-col h-full p-4 bg-white">
           <div className="relative flex items-center justify-center flex-1 p-2 mb-3">
             <Image
-              src={`${process.env.NEXT_PUBLIC_API_URL}${product.images[0].image}`}
+              src={getImageUrl(product.images[0].image)}
               alt={product.name}
               width={180}
               height={180}
@@ -219,14 +138,30 @@ const ProductCard = ({ product, isSpecial = false }) => {
             </h3>
             
             <div className="flex flex-col mt-2">
-              {product.mrp > product.price && (
-                <span className="text-xs text-gray-400 line-through">
-                  ₹{product.mrp.toLocaleString()}
+              {/* Show market price (crossed out) when it's higher than selling price */}
+              {marketPrice && parseFloat(marketPrice) > parseFloat(sellingPrice) && (
+                <span className="text-sm text-gray-400 line-through">
+                  ₹{parseFloat(marketPrice).toLocaleString('en-IN', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                  })}
                 </span>
               )}
-              <span className="text-base font-bold text-gray-900">
-                ₹{product.price.toLocaleString()}
-              </span>
+              {/* Current selling price and discount savings */}
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-gray-900">
+                  ₹{parseFloat(sellingPrice).toLocaleString('en-IN', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                  })}
+                </span>
+                {/* Show discount savings on the right side */}
+                {product.discount && parseFloat(product.discount) > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md">
+                    Save {parseFloat(product.discount)}%
+                  </span>
+                )}
+              </div>
               {product.perUnit && (
                 <span className="text-xs text-gray-400">
                   ({product.perUnit})
@@ -263,20 +198,6 @@ const ProductCard = ({ product, isSpecial = false }) => {
           )}
         </div>
       </Link>
-           
-      
-      {/* Mobile: Floating add to cart button (alternative approach) */}
-      {false && isMobile && !isAddedToCart && (
-        <div className={`fixed bottom-6 left-0 right-0 flex justify-center z-50 transition-opacity duration-300 ${showMobileCartButton ? 'opacity-100' : 'opacity-0'}`}>
-          <button
-            onClick={handleAddToCart}
-            className="flex items-center gap-2 px-6 py-3 font-medium text-white rounded-full shadow-lg bg-gradient-to-r from-pink-600 to-pink-500"
-          >
-            <ShoppingCart size={20} />
-            Add to Cart
-          </button>
-        </div>
-      )}
     </div>
   );
 };

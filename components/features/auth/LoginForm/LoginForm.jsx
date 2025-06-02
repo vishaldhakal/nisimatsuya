@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../context/AuthContext/AuthContext';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-
+import Link from 'next/link';
 const LoginForm = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -76,11 +76,11 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 sm:px-6 lg:px-8">
 
       <div className="relative sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
             Welcome Back
           </h1>
           <p className="mt-2 text-gray-600">
@@ -88,21 +88,21 @@ const LoginForm = () => {
           </p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-8 border border-white/20">
+        <div className="p-8 border shadow-2xl bg-white/80 backdrop-blur-lg rounded-2xl border-white/20">
           <form onSubmit={handleSubmit} className="space-y-6">
             {authError && (
-              <div className="bg-red-50/80 backdrop-blur border border-red-200 text-red-600 px-4 py-3 rounded-xl">
+              <div className="px-4 py-3 text-red-600 border border-red-200 bg-red-50/80 backdrop-blur rounded-xl">
                 {authError}
               </div>
             )}
             
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block mb-2 text-sm font-semibold text-gray-700">
                 Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-blue-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Mail className="w-5 h-5 text-blue-400" />
                 </div>
                 <input
                   type="email"
@@ -120,17 +120,17 @@ const LoginForm = () => {
                 />
               </div>
               {errors.email && (
-                <p className="text-red-500 text-sm mt-2 font-medium">{errors.email}</p>
+                <p className="mt-2 text-sm font-medium text-red-500">{errors.email}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block mb-2 text-sm font-semibold text-gray-700">
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-pink-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Lock className="w-5 h-5 text-pink-400" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -148,18 +148,18 @@ const LoginForm = () => {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                    <EyeOff className="w-5 h-5 text-pink-400 transition-colors hover:text-pink-600" />
                   ) : (
-                    <Eye className="h-5 w-5 text-pink-400 hover:text-pink-600 transition-colors" />
+                    <Eye className="w-5 h-5 text-pink-400 transition-colors hover:text-pink-600" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-2 font-medium">{errors.password}</p>
+                <p className="mt-2 text-sm font-medium text-red-500">{errors.password}</p>
               )}
             </div>
 
@@ -174,7 +174,7 @@ const LoginForm = () => {
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <div className="w-5 h-5 mr-2 border-b-2 border-white rounded-full animate-spin"></div>
                   Signing in...
                 </div>
               ) : (
@@ -186,12 +186,12 @@ const LoginForm = () => {
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <a 
+              <Link
                 href="/signup" 
-                className="font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+                className="font-semibold text-transparent transition-all duration-200 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text hover:from-pink-700 hover:to-purple-700"
               >
                 Sign up
-              </a>
+              </Link>
             </p>
 
           </div>

@@ -46,15 +46,15 @@ export default function Footer() {
             
             {/* Social Links */}
             <div className="flex gap-3">
-              <a href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
+              <Link href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
                 <Facebook className="w-5 h-5 text-gray-600 transition-colors group-hover:text-white" />
-              </a>
-              <a href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
+              </Link>
+              <Link href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
                 <Instagram className="w-5 h-5 text-gray-600 transition-colors group-hover:text-white" />
-              </a>
-              <a href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
+              </Link>
+              <Link href="#" className="p-3 transition-all duration-300 transform group bg-gray-50 rounded-xl hover:bg-pink-500 hover:scale-105">
                 <Twitter className="w-5 h-5 text-gray-600 transition-colors group-hover:text-white" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -111,9 +111,9 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="mb-1 text-sm font-medium text-gray-900">Email</p>
-                  <a href="mailto:info@nishimatsuya.com" className="text-gray-600 transition-colors hover:text-pink-600">
+                  <Link href="mailto:info@nishimatsuya.com" className="text-gray-600 transition-colors hover:text-pink-600">
                     info@nishimatsuya.com
-                  </a>
+                  </Link>
                 </div>
               </div>
               
@@ -123,9 +123,9 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="mb-1 text-sm font-medium text-gray-900">Phone</p>
-                  <a href="tel:+1234567890" className="text-gray-600 transition-colors hover:text-pink-600">
+                  <Link href="tel:+1234567890" className="text-gray-600 transition-colors hover:text-pink-600">
                     +1 234 567 890
-                  </a>
+                  </Link>
                 </div>
               </div>
               

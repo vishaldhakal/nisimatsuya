@@ -1,4 +1,4 @@
-// components/features/admin/blogs/BlogsTable.jsx
+
 import React from 'react';
 
 const BlogsTable = ({ 
@@ -6,8 +6,7 @@ const BlogsTable = ({
   selectedBlogs = [], 
   onSelectBlogs, 
   onEdit, 
-  onDelete, 
-  onTogglePublish, 
+  onDelete,  
   isLoading 
 }) => {
   const handleSelectAll = (e) => {
@@ -82,14 +81,7 @@ const BlogsTable = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {blogs.map((blog) => (
               <tr key={blog.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={selectedBlogs.includes(blog.id)}
-                    onChange={() => handleSelectBlog(blog.id)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </td>
+               
                 <td className="px-6 py-4">
                   <div className="flex items-center">
                     {blog.thumbnail_image && (

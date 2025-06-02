@@ -162,22 +162,6 @@ export default function BlogsPage() {
             ))}
           </div>
         )}
-
-        {/* Newsletter */}
-        <div className="max-w-lg p-8 mx-auto bg-white rounded-lg shadow-md">
-          <h2 className="mb-4 text-2xl font-bold text-center text-pink-800">Stay Updated with Baby Care Tips</h2>
-          <p className="mb-6 text-center text-pink-700">Subscribe to our newsletter for the latest parenting advice, product updates, and exclusive offers.</p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input 
-              type="email" 
-              placeholder="Your email address" 
-              className="flex-grow px-4 py-3 border border-pink-200 rounded-lg focus:border-pink-500 focus:ring-pink-500 focus:outline-none"
-            />
-            <button className="px-6 py-3 font-medium text-white transition-colors bg-pink-600 rounded-lg hover:bg-pink-700">
-              Subscribe
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

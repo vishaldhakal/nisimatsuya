@@ -15,15 +15,15 @@ const EditBlogPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
+    if (params.slug) {
       fetchBlog();
     }
-  }, [params.id]);
+  }, [params.slug]);
 
   const fetchBlog = async () => {
     try {
       setIsLoading(true);
-      const response = await blogService.getBlogBySlug(params.id);
+      const response = await blogService.getBlogBySlug(params.slug);
       setBlog(response);
     } catch (error) {
       toast.error(error.message || 'Failed to fetch blog');
@@ -37,7 +37,7 @@ const EditBlogPage = () => {
   const handleUpdateBlog = async (blogData) => {
     try {
       setIsSubmitting(true);
-      await blogService.updateBlog(params.id, blogData);
+      await blogService.updateBlog(params.slug, blogData);
       toast.success('Blog updated successfully!');
       router.push('/admin/blogs');
     } catch (error) {

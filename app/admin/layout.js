@@ -25,11 +25,11 @@ export default function AdminLayout({ children }) {
             </Link>
             {/* Desktop Nav */}
             <nav className="hidden space-x-8 md:flex">
-              <a href="/admin" className="text-gray-700 hover:text-gray-900">Dashboard</a>
-              <a href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</a>
-              <a href="/admin/orders" className="text-gray-700 hover:text-gray-900">Orders</a>
-              <a href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</a>
-              <a href="/admin/testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
+              <Link href="/admin" className="text-gray-700 hover:text-gray-900">Dashboard</Link>
+              <Link href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</Link>
+              <Link href="/admin/orders" className="text-gray-700 hover:text-gray-900">Orders</Link>
+              <Link href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</Link>
+              <Link href="/admin/testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</Link>
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');
@@ -54,11 +54,11 @@ export default function AdminLayout({ children }) {
           {/* Mobile Nav */}
           {menuOpen && (
             <div className="flex flex-col pb-4 space-y-2 md:hidden">
-              <a href="/admin" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Dashboard</a>
-              <a href="/admin/products" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Products</a>
-              <a href="/admin/orders" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Orders</a>
-              <a href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</a>
-              <a href="/admin/testimonials" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Testimonials</a>
+              <Link href="/admin" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <Link href="/admin/products" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Products</Link>
+              <Link href="/admin/orders" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Orders</Link>
+              <Link href="/admin/blogs" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Blogs</Link>
+              <Link href="/admin/testimonials" className="text-gray-700 hover:text-gray-900" onClick={() => setMenuOpen(false)}>Testimonials</Link>
               <button 
                 onClick={() => {
                   localStorage.removeItem('adminAuthenticated');

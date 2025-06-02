@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
-import { Heart, Share2, Truck, Shield, RefreshCw } from 'lucide-react';
+// Updated ProductInfo component
+import React from 'react';
+import { Share2, Truck, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import WishlistButton from '../../../../components/ui/WishlistButton';
+import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
 
-export const ProductInfo = ({ product, categories, quantity, setQuantity, handleAddToCart, isAddedToCart, totalItems }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+export const ProductInfo = ({ 
+  product, 
+  categories, 
+  quantity, 
+  setQuantity, 
+  handleAddToCart, 
+  isAddedToCart, 
+  totalItems 
+}) => {
+  const { showNotification } = useWishlistNotification();
   
   // Early return if product is missing
   if (!product) {
@@ -21,6 +32,15 @@ export const ProductInfo = ({ product, categories, quantity, setQuantity, handle
   // Safe string conversions
   const productName = String(product.name || 'Product Name');
   const productDescription = String(product.description || '');
+
+  // Handle wishlist feedback
+  const handleWishlistToggle = (wasInWishlist, productId) => {
+    if (wasInWishlist) {
+      showNotification('Removed from wishlist', 'info');
+    } else {
+      showNotification('Added to wishlist ❤️', 'success');
+    }
+  };
 
   return (
     <div className="p-4 space-y-4 sm:space-y-6 sm:p-0">
@@ -103,14 +123,13 @@ export const ProductInfo = ({ product, categories, quantity, setQuantity, handle
             {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
           </button>
           
-          <button 
-            onClick={() => setIsWishlisted(!isWishlisted)}
-            className="p-3 transition-colors border-2 border-gray-200 rounded-xl hover:bg-gray-50 shrink-0"
-          >
-            <Heart 
-              className={`w-5 h-5 sm:w-6 sm:h-6 ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`} 
-            />
-          </button>
+          {/* Simple Wishlist Button */}
+          <WishlistButton
+            productId={product.id}
+            size="md"
+            variant="filled"
+            onToggle={handleWishlistToggle}
+          />
           
           <button className="p-3 transition-colors border-2 border-gray-200 rounded-xl hover:bg-gray-50 shrink-0">
             <Share2 className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6" />

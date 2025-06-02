@@ -304,10 +304,24 @@ export const addProduct = async (data) => {
 };
 
 // EDIT PRODUCT - Uses category_slug + slug (CORRECT APPROACH)
+// EDIT PRODUCT - Fixed version
 export const editProduct = async (data) => {
   try {
     const { images, meta_title, meta_description, thumbnail_image, category, slug, ...productData } = data;
-    const cleanData = cleanProductData(productData);
+    
+    // Extract category ID for cleanProductData validation
+    let categoryId;
+    if (typeof category === 'number') {
+      categoryId = category;
+    } else if (typeof category === 'object' && category !== null) {
+      categoryId = category.id;
+    } else {
+      categoryId = parseInt(category) || null;
+    }
+    
+    // Include categoryId in the product data for cleanProductData validation
+    const dataWithCategory = { ...productData, category: categoryId };
+    const cleanData = cleanProductData(dataWithCategory);
 
     if (meta_title !== undefined) cleanData.meta_title = meta_title;
     if (meta_description !== undefined) cleanData.meta_description = meta_description;
@@ -318,16 +332,13 @@ export const editProduct = async (data) => {
 
     const useFormData = hasImages || hasNewThumbnail;
     
-    // Better category slug handling
-    let categorySlug = category?.slug;
-    
-    // If category is an object but no slug, try to get it from the category ID
-    if (!categorySlug && category) {
-      if (typeof category === 'object' && category.id) {
-        categorySlug = await getCategorySlugById(category.id);
-      } else if (typeof category === 'number') {
-        categorySlug = await getCategorySlugById(category);
-      }
+    // Get category slug for API endpoint
+    let categorySlug;
+    if (typeof category === 'object' && category !== null && category.slug) {
+      categorySlug = category.slug;
+    } else {
+      // Fallback: fetch category slug by ID
+      categorySlug = await getCategorySlugById(categoryId);
     }
     
     if (!categorySlug || !slug) {
@@ -355,6 +366,7 @@ export const editProduct = async (data) => {
         ...cleanData, 
         thumbnail_image: thumbnail_image?.image || null
       };
+      // Remove category from jsonData since it's not needed for the API call
       delete jsonData.category;
       return (await axiosInstance.patch(`/api/products/${categorySlug}/${slug}/`, jsonData, {
         headers: { 'Content-Type': 'application/json' }

@@ -152,63 +152,82 @@ function EditProductPage() {
     loadProduct();
   }, [slug, categories]); // Add categories as dependency to re-run when categories are loaded
 
-  const handleSubmit = async (formData) => {
-    if (isLoading) return;
+const handleSubmit = async (formData) => {
+  if (isLoading) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
+  
+  try {
+    console.log('Submitting form data:', formData);
     
-    try {
-      console.log('Submitting form data:', formData);
-      
-      // Get the original product data to access the full category object
-      const originalProductData = await fetchProductBySlug(slug);
-      
-      // Prepare the data with category object and slug
-      const submitData = {
-        ...formData,
-        slug: slug, // Add product slug
-        category: originalProductData.category // Use the original category object with slug
-      };
-      
-      console.log('Submit data with category:', submitData);
-      
-      await editProduct(submitData); // Pass the complete data object
-      toast.success("Product updated successfully!");
-      router.push("/admin/products");
-    } catch (error) {
-      console.error('Edit product error:', error);
-      
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        
-        if (errorData.non_field_errors) {
-          errorData.non_field_errors.forEach(err => {
-            if (err.includes('name, category must make a unique set')) {
-              toast.error('A product with this name already exists in the selected category. Please choose a different name or category.');
-            } else {
-              toast.error(err);
-            }
-          });
-        } else if (errorData.name) {
-          toast.error(`Name: ${Array.isArray(errorData.name) ? errorData.name.join(', ') : errorData.name}`);
-        } else if (errorData.category) {
-          toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category.join(', ') : errorData.category}`);
-        } else if (errorData.price) {
-          toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price.join(', ') : errorData.price}`);
-        } else if (errorData.detail) {
-          toast.error(errorData.detail);
-        } else {
-          toast.error('Failed to update product. Please check your input and try again.');
-        }
-      } else if (error.message) {
-        toast.error(error.message);
+    // Prepare the category data properly
+    let categoryData = formData.category;
+    
+    // If the form submitted just a category ID, we need to get the full category object
+    if (typeof categoryData === 'number' || typeof categoryData === 'string') {
+      const categoryId = parseInt(categoryData);
+      const category = categories.find(cat => cat.id === categoryId);
+      if (category) {
+        categoryData = category;
       } else {
-        toast.error('An unexpected error occurred. Please try again.');
+        // Fallback to original product data if category not found in current list
+        const originalProductData = await fetchProductBySlug(slug);
+        categoryData = originalProductData.category;
       }
-    } finally {
-      setIsLoading(false);
     }
-  };
+    
+    // If we still don't have a category with slug, fetch the original data
+    if (!categoryData || !categoryData.slug) {
+      const originalProductData = await fetchProductBySlug(slug);
+      categoryData = originalProductData.category;
+    }
+    
+    // Prepare the data with category object and slug
+    const submitData = {
+      ...formData,
+      slug: slug,
+      category: categoryData
+    };
+    
+    console.log('Submit data with category:', submitData);
+    
+    await editProduct(submitData);
+    toast.success("Product updated successfully!");
+    router.push("/admin/products");
+  } catch (error) {
+    console.error('Edit product error:', error);
+    
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      
+      if (errorData.non_field_errors) {
+        errorData.non_field_errors.forEach(err => {
+          if (err.includes('name, category must make a unique set')) {
+            toast.error('A product with this name already exists in the selected category. Please choose a different name or category.');
+          } else {
+            toast.error(err);
+          }
+        });
+      } else if (errorData.name) {
+        toast.error(`Name: ${Array.isArray(errorData.name) ? errorData.name.join(', ') : errorData.name}`);
+      } else if (errorData.category) {
+        toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category.join(', ') : errorData.category}`);
+      } else if (errorData.price) {
+        toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price.join(', ') : errorData.price}`);
+      } else if (errorData.detail) {
+        toast.error(errorData.detail);
+      } else {
+        toast.error('Failed to update product. Please check your input and try again.');
+      }
+    } else if (error.message) {
+      toast.error(error.message);
+    } else {
+      toast.error('An unexpected error occurred. Please try again.');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleCancel = () => {
     if (isLoading) {

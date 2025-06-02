@@ -13,8 +13,10 @@ const nextConfig = {
       "192.168.1.87",
       "http://192.168.1.87:8000null",
       "kay-promised-savannah-sponsor.trycloudflare.com",
-      "novel-arrow-focal-room.trycloudflare.com",
+      "replies-univ-consolidation-renewal.trycloudflare.com",
+      "replies-univ-consolidation-renewal.trycloudflare.comhttp",
       "kay-promised-savannah-sponsor.trycloudflare.comhttp",
+      "replies-univ-consolidation-renewal.trycloudflare.comnull",
     ],
   },
 };

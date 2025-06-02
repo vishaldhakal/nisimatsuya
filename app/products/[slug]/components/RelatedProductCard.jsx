@@ -3,9 +3,12 @@ import { useCart } from "../../../../components/features/cart/CartContext";
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import WishlistButton from '../../../../components/ui/WishlistButton';
+import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
 
 export const RelatedProductCard = ({ product }) => {
   const { addToCart } = useCart();
+  const { showNotification } = useWishlistNotification();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -46,6 +49,15 @@ export const RelatedProductCard = ({ product }) => {
     setIsAddedToCart(true);
     setTimeout(() => setIsAddedToCart(false), 5000);
   }, [addToCart, product]);
+
+  // Handle wishlist feedback
+  const handleWishlistToggle = (wasInWishlist, productId) => {
+    if (wasInWishlist) {
+      showNotification('Removed from wishlist', 'info');
+    } else {
+      showNotification('Added to wishlist ❤️', 'success');
+    }
+  };
 
   // Safely extract values with fallbacks
   const productId = product.id || '';
@@ -104,11 +116,31 @@ export const RelatedProductCard = ({ product }) => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {discountPercentage > 0 && (
-            <div className="absolute z-10 px-2 py-1 text-xs font-bold text-red-600 bg-red-100 rounded-full top-2 left-2">
-              {discountPercentage}%
-            </div>
-          )}
+          {/* Badges Section */}
+          <div className="absolute z-10 flex gap-2 top-4 left-4">
+            {product.is_featured && (
+              <span className="px-2 py-1 text-xs font-medium text-orange-600 bg-orange-100 rounded-full">FEATURED</span>
+            )}
+            {product.is_popular && (
+              <span className="px-2 py-1 text-xs font-medium text-pink-600 bg-pink-100 rounded-full">POPULAR</span>
+            )}
+            {!product.is_featured && !product.is_popular && discountPercentage > 0 && (
+              <span className="px-2 py-1 text-xs font-bold text-red-600 bg-red-100 rounded-full">
+                {discountPercentage}%
+              </span>
+            )}
+          </div>
+
+          {/* Wishlist Button */}
+          <div className="absolute z-10 top-4 right-4">
+            <WishlistButton
+              productId={product.id}
+              size="sm"
+              variant="default"
+              className="shadow hover:shadow-md"
+              onToggle={handleWishlistToggle}
+            />
+          </div>
 
           <div className="relative flex items-center justify-center h-48 mb-4 overflow-hidden bg-gray-50 rounded-xl">
             <Image
@@ -147,14 +179,35 @@ export const RelatedProductCard = ({ product }) => {
             </h3>
             
             <div className="flex flex-col">
+              {/* Show market price (crossed out) when it's higher than selling price */}
               {productMarketPrice && productMarketPrice > productPrice && (
-                <span className="text-xs text-gray-400 line-through">
-                  ₹{productMarketPrice.toLocaleString()}
+                <span className="text-sm text-gray-400 line-through">
+                  ₹{parseFloat(productMarketPrice).toLocaleString('en-IN', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                  })}
                 </span>
               )}
-              <span className="text-lg font-bold text-gray-900">
-                ₹{productPrice.toLocaleString()}
-              </span>
+              {/* Current selling price and discount savings */}
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-gray-900">
+                  ₹{parseFloat(productPrice).toLocaleString('en-IN', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                  })}
+                </span>
+                {/* Show discount savings on the right side */}
+                {product.discount && parseFloat(product.discount) > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md">
+                    Save {parseFloat(product.discount)}%
+                  </span>
+                )}
+              </div>
+              {product.perUnit && (
+                <span className="text-xs text-gray-400">
+                  ({product.perUnit})
+                </span>
+              )}
             </div>
           </div>
 

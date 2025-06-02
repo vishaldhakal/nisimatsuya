@@ -15,8 +15,8 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
   });
   
   const [categories, setCategories] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [allTags, setAllTags] = useState([]); 
+  const [selectedTagObjects, setSelectedTagObjects] = useState([]); 
   const [errors, setErrors] = useState({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -28,31 +28,46 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       try {
         setIsInitialLoading(true);
         await fetchCategoriesAndTags();
-        
-        // If editing, populate form with blog data
-        if (blog) {
-          const blogTags = blog.tags || [];
+
+        if (isEditMode && blog) {
+          const existingBlogTags = blog.tags || []; // This is an array of tag objects from API
+          const existingTagIds = existingBlogTags.map(tag => tag.id).filter(id => id != null);
+
           setFormData({
             title: blog.title || '',
             description: blog.description || '',
             meta_title: blog.meta_title || '',
             meta_description: blog.meta_description || '',
-            thumbnail_image: null, // Always null for file inputs
+            thumbnail_image: null, // File input is not repopulated for security/UX reasons
             thumbnail_image_alt_description: blog.thumbnail_image_alt_description || '',
-            category_id: blog.category?.id || blog.category_id || '', 
-            tags: blogTags.map(tag => tag.id || tag) || [],
+            category_id: blog.category?.id || '',
+            tags: existingTagIds, // Store array of IDs
           });
-          setSelectedTags(blogTags);
+          setSelectedTagObjects(existingBlogTags); // Store array of objects for pill display
+        } else {
+          // For create mode, ensure form is reset (or use initial useState values)
+          setFormData({
+            title: '',
+            description: '',
+            meta_title: '',
+            meta_description: '',
+            thumbnail_image: null,
+            thumbnail_image_alt_description: '',
+            category_id: '',
+            tags: [],
+          });
+          setSelectedTagObjects([]);
         }
       } catch (error) {
         console.error('Error initializing form:', error);
+        setErrors(prev => ({ ...prev, formInit: 'Failed to load initial form data.' }));
       } finally {
         setIsInitialLoading(false);
       }
     };
 
     initializeForm();
-  }, [blog]);
+  }, [blog, isEditMode]);
 
   const fetchCategoriesAndTags = async () => {
     try {
@@ -60,64 +75,49 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
         blogService.getCategories(),
         blogService.getTags()
       ]);
-      
-      // Handle different response structures
+
       const categoriesData = categoriesRes?.results || categoriesRes?.data || categoriesRes || [];
       const tagsData = tagsRes?.results || tagsRes?.data || tagsRes || [];
-      
+
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setTags(Array.isArray(tagsData) ? tagsData : []);
+      setAllTags(Array.isArray(tagsData) ? tagsData : []); // Store all available tags
     } catch (error) {
       console.error('Error fetching categories and tags:', error);
-      // Set empty arrays as fallback
       setCategories([]);
-      setTags([]);
+      setAllTags([]);
     }
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    
+    const { name, value, type, files } = e.target;
+
     if (type === 'file') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: files[0] || null
-      }));
-    } else if (type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+      setFormData(prev => ({ ...prev, [name]: files[0] || null }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
-    // Clear error when user starts typing
+
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const handleTagChange = (tagId) => {
-    const isSelected = formData.tags.includes(tagId);
-    const updatedTags = isSelected 
-      ? formData.tags.filter(id => id !== tagId)
-      : [...formData.tags, tagId];
-    
+    const currentSelectedTagIds = formData.tags;
+    const isSelected = currentSelectedTagIds.includes(tagId);
+
+    const updatedTagIds = isSelected
+      ? currentSelectedTagIds.filter(id => id !== tagId)
+      : [...currentSelectedTagIds, tagId];
+
     setFormData(prev => ({
       ...prev,
-      tags: updatedTags
+      tags: updatedTagIds,
     }));
-    
-    // Update selected tags display
-    const updatedSelectedTags = tags.filter(tag => updatedTags.includes(tag.id));
-    setSelectedTags(updatedSelectedTags);
+
+    // Update the display of selected tag pills
+    const updatedSelectedTagObjects = allTags.filter(tag => updatedTagIds.includes(tag.id));
+    setSelectedTagObjects(updatedSelectedTagObjects);
   };
 
   const validateForm = () => {
@@ -148,15 +148,12 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    // Pass the raw formData object, not FormData
-    // Let the service handle FormData creation
+    if (!validateForm()) return;
+
+    // Prepare data for submission. Crucially, use 'tags_id' for the tags.
     const submitData = {
       title: formData.title,
       description: formData.description,
@@ -164,18 +161,18 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       meta_description: formData.meta_description,
       thumbnail_image_alt_description: formData.thumbnail_image_alt_description,
       category_id: formData.category_id,
-      tags: formData.tags,
+      tags_id: formData.tags, // Send array of IDs under 'tags_id'
     };
 
-    // Only include thumbnail_image if a file was selected
     if (formData.thumbnail_image) {
       submitData.thumbnail_image = formData.thumbnail_image;
     }
     
-    onSubmit(submitData);
+   console.log("Submitting data:", JSON.stringify(submitData, null, 2)); 
+    onSubmit(submitData); 
   };
 
-  const resetForm = () => {
+ const resetForm = () => {
     setFormData({
       title: '',
       description: '',
@@ -183,10 +180,10 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       meta_description: '',
       thumbnail_image: null,
       thumbnail_image_alt_description: '',
-      category_id: '', 
+      category_id: '',
       tags: [],
     });
-    setSelectedTags([]);
+    setSelectedTagObjects([]);
     setErrors({});
   };
 
@@ -357,17 +354,15 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
           {errors.category_id && <p className="mt-1 text-sm text-red-500">{errors.category_id}</p>}
         </div>
 
-        {/* Tags */}
-        <div>
+         <div>
           <label className="block mb-2 text-sm font-medium text-gray-700">
-            Tags
-            <span className="ml-1 text-xs text-gray-500">(Optional)</span>
+            Tags <span className="ml-1 text-xs text-gray-500">(Optional)</span>
           </label>
           
-          {/* Selected Tags Display */}
-          {selectedTags.length > 0 && (
+          {/* Selected Tags Display (Pills) */}
+          {selectedTagObjects.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2">
-              {selectedTags.map(tag => (
+              {selectedTagObjects.map(tag => (
                 <span
                   key={tag.id}
                   className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full"
@@ -375,36 +370,35 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
                   {tag.title || tag.name}
                   <button
                     type="button"
-                    onClick={() => handleTagChange(tag.id)}
+                    onClick={() => handleTagChange(tag.id)} // Pass ID to handler
                     className="ml-1 text-blue-600 hover:text-blue-800"
                     aria-label={`Remove ${tag.title || tag.name} tag`}
-                  >
-                    ×
-                  </button>
+                  >×</button>
                 </span>
               ))}
             </div>
           )}
           
-          {/* Tags Selection */}
+          {/* Tags Selection (Checkboxes) */}
           <div className="p-2 space-y-2 overflow-y-auto border border-gray-300 rounded-md max-h-40">
-            {tags.length > 0 ? (
-              tags.map(tag => (
+            {allTags.length > 0 ? (
+              allTags.map(tag => (
                 <label key={tag.id} className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
-                    checked={formData.tags.includes(tag.id)}
-                    onChange={() => handleTagChange(tag.id)}
+                    checked={formData.tags.includes(tag.id)} // Check against array of IDs
+                    onChange={() => handleTagChange(tag.id)} // Pass ID to handler
                     className="mr-2"
                   />
                   <span className="text-sm">{tag.title || tag.name}</span>
                 </label>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No tags available</p>
+              <p className="text-sm text-gray-500">No tags available. Create some first.</p>
             )}
           </div>
         </div>
+
 
         {/* Form Actions */}
         <div className="flex justify-end pt-6 space-x-4 border-t">

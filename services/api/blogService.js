@@ -1,5 +1,5 @@
 
-import axiosInstance from '../../lib/api/axiosInstance';
+import axiosInstance from '../../lib/api/axiosInstance'; 
 
 const BLOG_ENDPOINTS = {
   BLOGS: '/api/blogs/',
@@ -8,44 +8,68 @@ const BLOG_ENDPOINTS = {
   TAGS: '/api/blog/tags/',
 };
 
+
+function formatDRFErrors(errorData) {
+  if (!errorData) return 'An unknown error occurred.';
+  if (typeof errorData === 'string') return errorData; 
+  if (errorData.detail) return errorData.detail; 
+
+  let messages = [];
+  for (const key in errorData) {
+    if (errorData.hasOwnProperty(key)) {
+      const fieldErrors = Array.isArray(errorData[key]) ? errorData[key] : [errorData[key]];
+      messages.push(`${key}: ${fieldErrors.join(', ')}`);
+    }
+  }
+  return messages.join('; ') || 'Failed to process request. Please check your input.';
+}
+
+
 export const blogService = {
-  // Get all blogs with pagination and filters
   getBlogs: async (params = {}) => {
     try {
       const response = await axiosInstance.get(BLOG_ENDPOINTS.BLOGS, { params });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch blogs');
+      console.error('Error fetching blogs:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to fetch blogs');
     }
   },
 
-  // Get single blog by ID
   getBlogBySlug: async (slug) => {
     try {
       const response = await axiosInstance.get(BLOG_ENDPOINTS.BLOG_DETAIL(slug));
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch blog');
+      console.error('Error fetching blog by slug:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to fetch blog');
     }
   },
 
-  // Create new blog post
-  createBlog: async (blogData) => {
+  createBlog: async (blogData) => { 
     try {
       const formData = new FormData();
       
-      // Append basic fields
-      Object.keys(blogData).forEach(key => {
-        if (key === 'tags' && Array.isArray(blogData[key])) {
-          // Handle tags array
-          blogData[key].forEach(tag => formData.append('tags', tag));
-        } else if (key === 'thumbnail_image' && blogData[key] instanceof File) {
-          // Handle file upload
-          formData.append(key, blogData[key]);
-        } else if (blogData[key] !== null && blogData[key] !== undefined) {
-          formData.append(key, blogData[key]);
+      for (const key in blogData) {
+        if (blogData.hasOwnProperty(key)) {
+          const value = blogData[key];
+
+          if (key === 'tags_id' && Array.isArray(value)) {
+           
+            value.forEach(tagId => {
+              formData.append('tags_id', tagId);
+            });
+            
+          } else if (value instanceof File) {
+            formData.append(key, value);
+          } else if (value !== null && value !== undefined) {
+            
+            formData.append(key, value);
+          }
+         
         }
-      });
+      }
+      
 
       const response = await axiosInstance.post(BLOG_ENDPOINTS.BLOGS, formData, {
         headers: {
@@ -54,63 +78,72 @@ export const blogService = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to create blog');
+      console.error('Error creating blog:', error.response?.data || error.message, error.response?.status);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to create blog');
     }
   },
 
-  // Update blog post
-  updateBlog: async (id, blogData) => {
+  updateBlog: async (slug, blogData) => { 
     try {
       const formData = new FormData();
       
-      Object.keys(blogData).forEach(key => {
-        if (key === 'tags' && Array.isArray(blogData[key])) {
-          blogData[key].forEach(tag => formData.append('tags', tag));
-        } else if (key === 'thumbnail_image' && blogData[key] instanceof File) {
-          formData.append(key, blogData[key]);
-        } else if (blogData[key] !== null && blogData[key] !== undefined) {
-          formData.append(key, blogData[key]);
-        }
-      });
+      for (const key in blogData) {
+        if (blogData.hasOwnProperty(key)) {
+          const value = blogData[key];
 
-      const response = await axiosInstance.put(BLOG_ENDPOINTS.BLOG_DETAIL(id), formData, {
+          if (key === 'tags_id' && Array.isArray(value)) {
+            value.forEach(tagId => {
+              formData.append('tags_id', tagId);
+            });
+          } else if (key === 'thumbnail_image' && value instanceof File) {
+            //
+            formData.append(key, value);
+          } else if (value !== null && value !== undefined && !(key === 'thumbnail_image' && value === null)) {
+         
+            formData.append(key, value);
+          }
+        }
+      }
+      
+      const response = await axiosInstance.put(BLOG_ENDPOINTS.BLOG_DETAIL(slug), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to update blog');
+      console.error('Error updating blog:', error.response?.data || error.message, error.response?.status);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to update blog');
     }
   },
 
-  // Delete blog post
-  deleteBlog: async (id) => {
+  deleteBlog: async (slug) => { 
     try {
-      const response = await axiosInstance.delete(BLOG_ENDPOINTS.BLOG_DETAIL(id));
-      return response.data;
+      const response = await axiosInstance.delete(BLOG_ENDPOINTS.BLOG_DETAIL(slug));
+      return response.data; 
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to delete blog');
+      console.error('Error deleting blog:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to delete blog');
     }
   },
 
-  // Get blog categories
   getCategories: async () => {
     try {
       const response = await axiosInstance.get(BLOG_ENDPOINTS.CATEGORIES);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch categories');
+      console.error('Error fetching categories:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to fetch categories');
     }
   },
 
-  // Get blog tags
   getTags: async () => {
     try {
       const response = await axiosInstance.get(BLOG_ENDPOINTS.TAGS);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch tags');
+      console.error('Error fetching tags:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to fetch tags');
     }
   },
 };

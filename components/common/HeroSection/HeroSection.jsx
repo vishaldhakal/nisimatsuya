@@ -4,7 +4,7 @@ import { Search, Baby, Gift, Truck, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchCategories } from "../../../services";
-
+import Link from "next/link";
 // Optional: Map category names to icons
 const categoryIcons = {
   clothing: <Baby size={24} />,
@@ -72,10 +72,10 @@ export default function HeroSection() {
 
       {/* Blob decorations */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
-      <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      <div className="absolute bottom-0 right-0 bg-pink-200 rounded-full w-80 h-80 mix-blend-multiply filter blur-3xl opacity-30"></div>
 
       {/* Content container */}
-      <div className="relative z-10 max-w-6xl mx-auto text-center py-5 px-4">
+      <div className="relative z-10 max-w-6xl px-4 py-5 mx-auto text-center">
         <div className="flex flex-col items-center justify-between gap-8">
           {/* Left side - Image */}
           <div className="md:w-1/2">
@@ -91,9 +91,9 @@ export default function HeroSection() {
                 />
               </div>
               {/* Trust badge */}
-              <div className="absolute -bottom-4 -right-4 bg-white rounded-full p-2 shadow-lg">
-                <div className="bg-yellow-400 rounded-full px-4 py-2 flex items-center gap-1">
-                  <span className="font-normal text-black text-sm">
+              <div className="absolute p-2 bg-white rounded-full shadow-lg -bottom-4 -right-4">
+                <div className="flex items-center gap-1 px-4 py-2 bg-yellow-400 rounded-full">
+                  <span className="text-sm font-normal text-black">
                     Trusted by Moms
                   </span>
                 </div>
@@ -103,11 +103,11 @@ export default function HeroSection() {
 
           {/* Right side - Content */}
           <div className="text-left">
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 drop-shadow-lg text-center">
+            <h1 className="mb-4 text-4xl font-extrabold text-center text-gray-900 md:text-6xl drop-shadow-lg">
               Baby's All in One Store{" "}
               <span className="text-pink-600">Nishimatsuya</span>
             </h1>
-            <p className="text-lg text-gray-700 mb-6 text-center">
+            <p className="mb-6 text-lg text-center text-gray-700">
               Premium quality baby products at affordable prices, trusted by
               families across Japan since 1972.
             </p>
@@ -120,30 +120,30 @@ export default function HeroSection() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
-                className="w-full px-6 h-20 py-4 pl-12 pr-16 bg-white rounded-full border-2 border-pink-200 focus:border-pink-500 focus:outline-none shadow-md"
+                className="w-full h-20 px-6 py-4 pl-12 pr-16 bg-white border-2 border-pink-200 rounded-full shadow-md focus:border-pink-500 focus:outline-none"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 hover:bg-pink-600 text-white rounded-full p-3 transition-colors duration-200"
+                className="absolute p-3 text-white transition-colors duration-200 transform -translate-y-1/2 bg-pink-500 rounded-full right-2 top-1/2 hover:bg-pink-600"
                 disabled={!searchQuery.trim()}
               >
                 <Search size={20} />
               </button>
               <Search
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-pink-500"
+                className="absolute text-pink-500 transform -translate-y-1/2 left-4 top-1/2"
                 size={20}
               />
             </form>
 
             {/* Category icons */}
-            <div className="flex flex-wrap justify-center md:justify-center gap-4 mb-8">
+            <div className="flex flex-wrap justify-center gap-4 mb-8 md:justify-center">
               {categories.map((category) => (
-                <a
+                <Link
                   key={category.slug}
                   href={`/products/category/${category.slug}`}
-                  className="flex flex-row gap-1 items-center p-3 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:bg-pink-50 hover:scale-105"
+                  className="flex flex-row items-center gap-1 p-3 transition-all bg-white rounded-lg shadow-md hover:shadow-lg hover:bg-pink-50 hover:scale-105"
                 >
-                  <div className="bg-pink-50 rounded-full text-pink-600 p-2">
+                  <div className="p-2 text-pink-600 rounded-full bg-pink-50">
                     {categoryIcons[category.name?.toLowerCase()] || (
                       <Star size={24} />
                     )}
@@ -151,7 +151,7 @@ export default function HeroSection() {
                   <span className="text-sm font-medium text-gray-700">
                     {category.name}
                   </span>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
