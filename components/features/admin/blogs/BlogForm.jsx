@@ -1,4 +1,4 @@
-// components/features/admin/blogs/BlogForm.jsx
+
 import React, { useState, useEffect } from 'react';
 import { blogService } from '../../../../services/api/blogService';
 
@@ -19,6 +19,11 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
   const [selectedTagObjects, setSelectedTagObjects] = useState([]); 
   const [errors, setErrors] = useState({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  
+  // New state for tag creation
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
 
   // Determine if we're in edit mode
   const isEditMode = Boolean(blog);
@@ -30,7 +35,7 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
         await fetchCategoriesAndTags();
 
         if (isEditMode && blog) {
-          const existingBlogTags = blog.tags || []; // This is an array of tag objects from API
+          const existingBlogTags = blog.tags || [];
           const existingTagIds = existingBlogTags.map(tag => tag.id).filter(id => id != null);
 
           setFormData({
@@ -38,14 +43,13 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
             description: blog.description || '',
             meta_title: blog.meta_title || '',
             meta_description: blog.meta_description || '',
-            thumbnail_image: null, // File input is not repopulated for security/UX reasons
+            thumbnail_image: null,
             thumbnail_image_alt_description: blog.thumbnail_image_alt_description || '',
             category_id: blog.category?.id || '',
-            tags: existingTagIds, // Store array of IDs
+            tags: existingTagIds,
           });
-          setSelectedTagObjects(existingBlogTags); // Store array of objects for pill display
+          setSelectedTagObjects(existingBlogTags);
         } else {
-          // For create mode, ensure form is reset (or use initial useState values)
           setFormData({
             title: '',
             description: '',
@@ -80,7 +84,7 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       const tagsData = tagsRes?.results || tagsRes?.data || tagsRes || [];
 
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setAllTags(Array.isArray(tagsData) ? tagsData : []); // Store all available tags
+      setAllTags(Array.isArray(tagsData) ? tagsData : []);
     } catch (error) {
       console.error('Error fetching categories and tags:', error);
       setCategories([]);
@@ -115,9 +119,60 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       tags: updatedTagIds,
     }));
 
-    // Update the display of selected tag pills
     const updatedSelectedTagObjects = allTags.filter(tag => updatedTagIds.includes(tag.id));
     setSelectedTagObjects(updatedSelectedTagObjects);
+  };
+
+  // New function to create a tag
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) {
+      setErrors(prev => ({ ...prev, newTag: 'Tag name is required' }));
+      return;
+    }
+
+    // Check if tag already exists
+    const existingTag = allTags.find(tag => 
+      (tag.title || tag.name).toLowerCase() === newTagName.trim().toLowerCase()
+    );
+    
+    if (existingTag) {
+      setErrors(prev => ({ ...prev, newTag: 'Tag already exists' }));
+      return;
+    }
+
+    try {
+      setIsCreatingTag(true);
+      setErrors(prev => ({ ...prev, newTag: '' }));
+      
+      const newTag = await blogService.createTag({ 
+        title: newTagName.trim(),
+        name: newTagName.trim() // Include both fields in case API expects either
+      });
+      
+      // Add new tag to allTags list
+      setAllTags(prev => [...prev, newTag]);
+      
+      // Auto-select the newly created tag
+      const newTagId = newTag.id;
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTagId]
+      }));
+      setSelectedTagObjects(prev => [...prev, newTag]);
+      
+      // Reset tag input
+      setNewTagName('');
+      setShowTagInput(false);
+      
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      setErrors(prev => ({ 
+        ...prev, 
+        newTag: error.message || 'Failed to create tag' 
+      }));
+    } finally {
+      setIsCreatingTag(false);
+    }
   };
 
   const validateForm = () => {
@@ -135,7 +190,6 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       newErrors.category_id = 'Category is required';
     }
     
-    // Optional: Add more validations
     if (formData.meta_title && formData.meta_title.length > 60) {
       newErrors.meta_title = 'Meta title should be under 60 characters';
     }
@@ -148,12 +202,10 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    // Prepare data for submission. Crucially, use 'tags_id' for the tags.
     const submitData = {
       title: formData.title,
       description: formData.description,
@@ -161,18 +213,18 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       meta_description: formData.meta_description,
       thumbnail_image_alt_description: formData.thumbnail_image_alt_description,
       category_id: formData.category_id,
-      tags_id: formData.tags, // Send array of IDs under 'tags_id'
+      tags_id: formData.tags,
     };
 
     if (formData.thumbnail_image) {
       submitData.thumbnail_image = formData.thumbnail_image;
     }
     
-   console.log("Submitting data:", JSON.stringify(submitData, null, 2)); 
+    console.log("Submitting data:", JSON.stringify(submitData, null, 2)); 
     onSubmit(submitData); 
   };
 
- const resetForm = () => {
+  const resetForm = () => {
     setFormData({
       title: '',
       description: '',
@@ -185,9 +237,10 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
     });
     setSelectedTagObjects([]);
     setErrors({});
+    setNewTagName('');
+    setShowTagInput(false);
   };
 
-  // Show loading state while fetching initial data
   if (isInitialLoading) {
     return (
       <div className="max-w-4xl p-6 mx-auto bg-white rounded-lg shadow-md">
@@ -302,7 +355,6 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           
-          {/* Show current image in edit mode */}
           {isEditMode && blog?.thumbnail_image && (
             <div className="mt-2">
               <p className="text-sm text-gray-600">Current image:</p>
@@ -354,10 +406,66 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
           {errors.category_id && <p className="mt-1 text-sm text-red-500">{errors.category_id}</p>}
         </div>
 
-         <div>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            Tags <span className="ml-1 text-xs text-gray-500">(Optional)</span>
-          </label>
+        {/* Enhanced Tags Section */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-gray-700">
+              Tags <span className="ml-1 text-xs text-gray-500">(Optional)</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowTagInput(!showTagInput)}
+              className="px-3 py-1 text-xs text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              + Add New Tag
+            </button>
+          </div>
+
+          {/* New Tag Creation Input */}
+          {showTagInput && (
+            <div className="p-3 mb-3 border border-gray-200 rounded-md bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => {
+                    setNewTagName(e.target.value);
+                    if (errors.newTag) {
+                      setErrors(prev => ({ ...prev, newTag: '' }));
+                    }
+                  }}
+                  placeholder="Enter new tag name"
+                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCreateTag();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateTag}
+                  disabled={isCreatingTag || !newTagName.trim()}
+                  className="px-3 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingTag ? 'Creating...' : 'Create'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTagInput(false);
+                    setNewTagName('');
+                    setErrors(prev => ({ ...prev, newTag: '' }));
+                  }}
+                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+              </div>
+              {errors.newTag && <p className="mt-1 text-xs text-red-500">{errors.newTag}</p>}
+            </div>
+          )}
           
           {/* Selected Tags Display (Pills) */}
           {selectedTagObjects.length > 0 && (
@@ -370,7 +478,7 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
                   {tag.title || tag.name}
                   <button
                     type="button"
-                    onClick={() => handleTagChange(tag.id)} // Pass ID to handler
+                    onClick={() => handleTagChange(tag.id)}
                     className="ml-1 text-blue-600 hover:text-blue-800"
                     aria-label={`Remove ${tag.title || tag.name} tag`}
                   >×</button>
@@ -386,19 +494,27 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
                 <label key={tag.id} className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
-                    checked={formData.tags.includes(tag.id)} // Check against array of IDs
-                    onChange={() => handleTagChange(tag.id)} // Pass ID to handler
+                    checked={formData.tags.includes(tag.id)}
+                    onChange={() => handleTagChange(tag.id)}
                     className="mr-2"
                   />
                   <span className="text-sm">{tag.title || tag.name}</span>
                 </label>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No tags available. Create some first.</p>
+              <div className="py-4 text-center">
+                <p className="mb-2 text-sm text-gray-500">No tags available yet.</p>
+                <button
+                  type="button"
+                  onClick={() => setShowTagInput(true)}
+                  className="text-sm text-blue-600 underline hover:text-blue-800"
+                >
+                  Create your first tag
+                </button>
+              </div>
             )}
           </div>
         </div>
-
 
         {/* Form Actions */}
         <div className="flex justify-end pt-6 space-x-4 border-t">

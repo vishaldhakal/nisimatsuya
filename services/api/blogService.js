@@ -1,4 +1,3 @@
-
 import axiosInstance from '../../lib/api/axiosInstance'; 
 
 const BLOG_ENDPOINTS = {
@@ -6,8 +5,8 @@ const BLOG_ENDPOINTS = {
   BLOG_DETAIL: (slug) => `/api/blogs/${slug}/`,
   CATEGORIES: '/api/blog/categories/',
   TAGS: '/api/blog/tags/',
+  CREATE_TAG: '/api/blog/tags/', 
 };
-
 
 function formatDRFErrors(errorData) {
   if (!errorData) return 'An unknown error occurred.';
@@ -23,7 +22,6 @@ function formatDRFErrors(errorData) {
   }
   return messages.join('; ') || 'Failed to process request. Please check your input.';
 }
-
 
 export const blogService = {
   getBlogs: async (params = {}) => {
@@ -55,21 +53,16 @@ export const blogService = {
           const value = blogData[key];
 
           if (key === 'tags_id' && Array.isArray(value)) {
-           
             value.forEach(tagId => {
               formData.append('tags_id', tagId);
             });
-            
           } else if (value instanceof File) {
             formData.append(key, value);
           } else if (value !== null && value !== undefined) {
-            
             formData.append(key, value);
           }
-         
         }
       }
-      
 
       const response = await axiosInstance.post(BLOG_ENDPOINTS.BLOGS, formData, {
         headers: {
@@ -96,10 +89,8 @@ export const blogService = {
               formData.append('tags_id', tagId);
             });
           } else if (key === 'thumbnail_image' && value instanceof File) {
-            //
             formData.append(key, value);
           } else if (value !== null && value !== undefined && !(key === 'thumbnail_image' && value === null)) {
-         
             formData.append(key, value);
           }
         }
@@ -144,6 +135,21 @@ export const blogService = {
     } catch (error) {
       console.error('Error fetching tags:', error.response?.data || error.message);
       throw new Error(formatDRFErrors(error.response?.data) || 'Failed to fetch tags');
+    }
+  },
+
+  // New method to create tags
+  createTag: async (tagData) => {
+    try {
+      const response = await axiosInstance.post(BLOG_ENDPOINTS.CREATE_TAG, tagData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating tag:', error.response?.data || error.message);
+      throw new Error(formatDRFErrors(error.response?.data) || 'Failed to create tag');
     }
   },
 };
