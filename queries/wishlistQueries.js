@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { wishlistApi } from '../services/api/wishlistService';
-import { useAuth } from '../context/AuthContext/AuthContext';
+import { useAuth } from '../contexts/AuthContext/AuthContext';
 
 // Query keys
 export const wishlistKeys = {

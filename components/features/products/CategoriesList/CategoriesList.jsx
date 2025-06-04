@@ -1,21 +1,29 @@
 "use client";
-import { useEffect, useState } from "react";
-import { fetchCategories } from "../../../../services";
+import { useCategories } from "../../../../contexts/CategoriesContext";
 
 export default function CategoriesList() {
-  const [categories, setCategories] = useState([]);
+  const { categories, loading, error } = useCategories();
 
-  useEffect(() => {
-    fetchCategories()
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]));
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-gray-500">Loading categories...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-red-500">Error loading categories: {error}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+    <div className="grid grid-cols-2 gap-6 md:grid-cols-5">
       {categories.map((cat) => (
         <div key={cat.id} className="category-card">
-          {/* Render your category card here */}
           <span>{cat.name}</span>
         </div>
       ))}

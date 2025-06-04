@@ -1,5 +1,5 @@
 "use client";
-import { useCategories } from "../../../../hooks/useCategories";
+import { useCategories } from "../../../../contexts/CategoriesContext";
 import CategoryCard from "../CategoryCard/CategoryCard";
 import { SectionHeader } from "../../../common";
 

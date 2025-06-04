@@ -1,25 +1,23 @@
 "use client";
-
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { useWishlistToggle } from '../../hooks/useWishlist';
 
-const WishlistButton = ({ 
-  productId, 
-  size = 'md', 
+const WishlistButton = ({
+  productId,
+  size = 'md',
   variant = 'default',
   className = '',
   showTooltip = true,
-  onToggle 
+  onToggle
 }) => {
-  const { 
-    isInWishlist, 
-    toggle: toggleWishlist, 
+  const {
+    isInWishlist,
+    toggle: toggleWishlist,
     isLoading: wishlistLoading,
-    error: wishlistError 
+    error: wishlistError
   } = useWishlistToggle(productId);
 
-  // Size variants matching the product grid layout
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -32,7 +30,6 @@ const WishlistButton = ({
     lg: 'w-6 h-6'
   };
 
-  // Clean style variants matching the product grid aesthetic
   const variantClasses = {
     default: `
       bg-white border border-gray-200 shadow-sm
@@ -55,9 +52,11 @@ const WishlistButton = ({
     e.stopPropagation();
     
     try {
-      await toggleWishlist();
+      const result = await toggleWishlist();
+      
       if (onToggle) {
-        onToggle(isInWishlist, productId);
+
+        onToggle(result.wasInWishlist, productId, result);
       }
     } catch (error) {
       console.error('Wishlist toggle error:', error);
@@ -65,7 +64,7 @@ const WishlistButton = ({
   };
 
   return (
-    <button 
+    <button
       onClick={handleToggle}
       disabled={wishlistLoading}
       className={`
@@ -84,18 +83,18 @@ const WishlistButton = ({
           <div className="w-3 h-3 border-2 border-pink-400 rounded-full border-t-transparent animate-spin"></div>
         </div>
       )}
-      
+
       {/* Heart icon */}
-      <Heart 
+      <Heart
         className={`
           transition-colors duration-200
           ${iconSizes[size]}
           ${wishlistLoading ? 'opacity-0' : 'opacity-100'}
-          ${isInWishlist 
-            ? 'fill-pink-500 text-pink-500' 
+          ${isInWishlist
+            ? 'fill-pink-500 text-pink-500'
             : 'text-gray-400 hover:text-pink-400'
           }
-        `} 
+        `}
       />
     </button>
   );

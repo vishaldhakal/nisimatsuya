@@ -1,7 +1,6 @@
-
 'use client';
 
-import { createContext, useContext, useEffect, useReducer } from 'react';
+import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import { authService } from '../../lib/auth/authService';
 import { jwtSessionManager } from '../../lib/auth/jwtSessionManager';
 
@@ -109,16 +108,8 @@ const authReducer = (state, action) => {
 
     case AUTH_ACTIONS.LOGOUT:
       return {
-        ...state,
-        user: null,
-        token: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isRegistering: false,
-        error: null,
-        emailVerificationRequired: false,
-        sessionInfo: null,
+        ...initialState, // Reset to initial state completely
+        isLoading: false, // But don't show loading after logout
       };
 
     case AUTH_ACTIONS.LOAD_USER:
@@ -162,6 +153,8 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const isLoggingOutRef = useRef(false);
+  const initializationCompleteRef = useRef(false);
 
   // Helper to get session data
   const getSessionData = () => {
@@ -178,6 +171,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      // Don't initialize if we're in the middle of logging out
+      if (isLoggingOutRef.current) {
+        return;
+      }
+
       try {
         dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
         
@@ -186,38 +184,46 @@ export const AuthProvider = ({ children }) => {
         
         const session = jwtSessionManager.getSession();
 
-        if (session && session.accessToken) {
+        if (session && session.accessToken && !isLoggingOutRef.current) {
           // Verify token is still valid
           const isValid = await authService.verifyToken(session.accessToken);
           
-          if (isValid) {
+          if (isValid && !isLoggingOutRef.current) {
             const sessionData = getSessionData();
             dispatch({
               type: AUTH_ACTIONS.LOAD_USER,
               payload: sessionData,
             });
-          } else {
+          } else if (!isLoggingOutRef.current) {
             // Try to refresh token
             try {
               await authService.refreshToken();
               const refreshedSessionData = getSessionData();
-              dispatch({
-                type: AUTH_ACTIONS.LOAD_USER,
-                payload: refreshedSessionData,
-              });
+              if (!isLoggingOutRef.current) {
+                dispatch({
+                  type: AUTH_ACTIONS.LOAD_USER,
+                  payload: refreshedSessionData,
+                });
+              }
             } catch (refreshError) {
               console.error('Token refresh failed during initialization:', refreshError);
-              jwtSessionManager.clearSession();
-              dispatch({ type: AUTH_ACTIONS.LOGOUT });
+              if (!isLoggingOutRef.current) {
+                jwtSessionManager.clearSession();
+                dispatch({ type: AUTH_ACTIONS.LOGOUT });
+              }
             }
           }
-        } else {
+        } else if (!isLoggingOutRef.current) {
           dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        jwtSessionManager.clearSession();
-        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        if (!isLoggingOutRef.current) {
+          jwtSessionManager.clearSession();
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        }
+      } finally {
+        initializationCompleteRef.current = true;
       }
     };
 
@@ -225,21 +231,35 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for storage changes (multi-tab synchronization)
     const handleStorageChange = (e) => {
+      // Ignore storage changes if we're logging out or during initialization
+      if (isLoggingOutRef.current || !initializationCompleteRef.current) {
+        return;
+      }
+
       if (e.key === 'auth_session' || e.key === 'auth_token') {
-        const sessionData = getSessionData();
-        if (sessionData.user && sessionData.token) {
-          dispatch({
-            type: AUTH_ACTIONS.LOAD_USER,
-            payload: sessionData,
-          });
-        } else {
-          dispatch({ type: AUTH_ACTIONS.LOGOUT });
-        }
+        // Add a small delay to avoid race conditions
+        setTimeout(() => {
+          if (!isLoggingOutRef.current) {
+            const sessionData = getSessionData();
+            if (sessionData.user && sessionData.token) {
+              dispatch({
+                type: AUTH_ACTIONS.LOAD_USER,
+                payload: sessionData,
+              });
+            } else {
+              dispatch({ type: AUTH_ACTIONS.LOGOUT });
+            }
+          }
+        }, 100);
       }
     };
 
     // Listen for custom session events
     const handleSessionUpdate = () => {
+      if (isLoggingOutRef.current || !initializationCompleteRef.current) {
+        return;
+      }
+
       const sessionData = getSessionData();
       dispatch({
         type: AUTH_ACTIONS.SESSION_UPDATE,
@@ -260,6 +280,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
     try {
+      isLoggingOutRef.current = false; // Reset logout flag
       const response = await authService.login(credentials);
       const sessionData = getSessionData();
       
@@ -286,6 +307,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.REGISTER_START });
     
     try {
+      isLoggingOutRef.current = false; // Reset logout flag
       const response = await authService.signup(userData);
       const sessionData = getSessionData();
       
@@ -312,8 +334,38 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    authService.logout();
-    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    // Set the logout flag to prevent any re-authentication
+    isLoggingOutRef.current = true;
+    initializationCompleteRef.current = false;
+    
+    try {
+      // Clear session first
+      authService.logout();
+      
+      // Dispatch logout action
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      
+      // Force clear any remaining session data
+      jwtSessionManager.clearSession();
+      
+      // Clear any timers or intervals that might be running
+      if (jwtSessionManager.refreshTimer) {
+        clearTimeout(jwtSessionManager.refreshTimer);
+        jwtSessionManager.refreshTimer = null;
+      }
+
+      console.log('Logout completed successfully');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Force clear even if there's an error
+      jwtSessionManager.clearSession();
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    }
+    
+    // Keep the logout flag set for a short period to prevent race conditions
+    setTimeout(() => {
+      isLoggingOutRef.current = false;
+    }, 1000);
   };
 
   const verifyEmail = async (token) => {
@@ -343,19 +395,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refreshToken = async () => {
+    if (isLoggingOutRef.current) {
+      throw new Error('Cannot refresh token during logout');
+    }
+
     try {
       await authService.refreshToken();
       const sessionData = getSessionData();
       
-      dispatch({
-        type: AUTH_ACTIONS.TOKEN_REFRESH,
-        payload: sessionData,
-      });
+      if (!isLoggingOutRef.current) {
+        dispatch({
+          type: AUTH_ACTIONS.TOKEN_REFRESH,
+          payload: sessionData,
+        });
+      }
       
       return sessionData;
     } catch (error) {
       console.error('Token refresh failed:', error);
-      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      if (!isLoggingOutRef.current) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      }
       throw error;
     }
   };
@@ -374,6 +434,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateSessionInfo = () => {
+    if (isLoggingOutRef.current) return;
+    
     const sessionData = getSessionData();
     dispatch({
       type: AUTH_ACTIONS.SESSION_UPDATE,

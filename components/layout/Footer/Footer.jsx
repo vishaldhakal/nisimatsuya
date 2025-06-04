@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, Heart, ArrowRight } from "lucide-react";
-import { useCategories } from "../../../hooks/useCategories";
+import { useCategories } from "../../../contexts/CategoriesContext";
 
 export default function Footer() {
   const { filteredCategories } = useCategories();

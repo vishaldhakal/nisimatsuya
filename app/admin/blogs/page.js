@@ -1,4 +1,4 @@
-// app/admin/blogs/page.js
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -40,32 +40,32 @@ const BlogsManagement = () => {
   }, [searchTerm, filters, pagination.currentPage]);
 
   const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      const params = {
-        page: pagination.currentPage,
-        search: searchTerm,
-        ...(filters.category && { category: filters.category }),
-        ...(filters.status && { is_published: filters.status === 'published' })
-      };
+  try {
+    setLoading(true);
+    const params = {
+      page: pagination.currentPage,
+      ...(searchTerm && { search: searchTerm }), // Only include search if it has a value
+      ...(filters.category && { category: filters.category }),
+      ...(filters.status && { is_published: filters.status === 'published' })
+    };
 
-      const response = await blogService.getBlogs(params);
-      
-      setBlogs(response.results || []);
-      setPagination({
-        currentPage: pagination.currentPage,
-        totalPages: Math.ceil(response.count / 10), 
-        totalBlogs: response.count,
-        hasNext: !!response.next,
-        hasPrevious: !!response.previous
-      });
-    } catch (error) {
-      toast.error(error.message || 'Failed to fetch blogs');
-      console.error('Error fetching blogs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await blogService.getBlogs(params);
+    
+    setBlogs(response.results || []);
+    setPagination({
+      currentPage: pagination.currentPage,
+      totalPages: Math.ceil(response.count / 10), 
+      totalBlogs: response.count,
+      hasNext: !!response.next,
+      hasPrevious: !!response.previous
+    });
+  } catch (error) {
+    toast.error(error.message || 'Failed to fetch blogs');
+    console.error('Error fetching blogs:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchCategories = async () => {
     try {

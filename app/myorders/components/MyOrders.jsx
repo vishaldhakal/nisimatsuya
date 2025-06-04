@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchMyOrders } from '../../../services/api/orderService';
-import { useAuth } from '../../../context/AuthContext/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext/AuthContext';
 import OrderFilters from './OrderFilters';
 import OrdersList from './OrdersList';
 import Pagination from './Pagination';

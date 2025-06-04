@@ -4,34 +4,24 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { toast } from 'react-hot-toast';
 import { ProductForm } from '../../../../components/features/products';
-import { editProduct, fetchProductBySlug, fetchCategories } from '../../../../services';
+import { editProduct, fetchProductBySlug } from '../../../../services';
+import { useCategories } from '../../../../contexts/CategoriesContext';
 
 function EditProductPage() {
   const router = useRouter();
   
   const searchParams = useSearchParams();
   const slug = searchParams.get("slug");
-  const category_slug = searchParams.get("category");
 
   const [initialData, setInitialData] = useState(null);
-  const [categories, setCategories] = useState([]);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const data = await fetchCategories();
-        setCategories(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        toast.error('Failed to load categories. Please refresh the page.');
-        setCategories([]);
-      }
-    };
-
-    loadCategories();
-  }, []);
+  // Handle categories loading error
+  if (categoriesError) {
+    toast.error('Failed to load categories. Please refresh the page.');
+  }
 
   // Helper function to normalize image data
   const normalizeImageData = (images) => {
@@ -85,7 +75,7 @@ function EditProductPage() {
     return null;
   };
 
-  // NEW: Helper function to normalize category data
+  // Helper function to normalize category data
   const normalizeCategoryData = (categoryData) => {
     // If it's already a number (ID), return it
     if (typeof categoryData === 'number') {
@@ -113,8 +103,8 @@ function EditProductPage() {
   };
 
   useEffect(() => {
-    if (!slug) {
-      setDataLoading(false);
+    if (!slug || categoriesLoading) {
+      setDataLoading(categoriesLoading);
       return;
     }
 
@@ -150,84 +140,84 @@ function EditProductPage() {
     };
 
     loadProduct();
-  }, [slug, categories]); // Add categories as dependency to re-run when categories are loaded
+  }, [slug, categories, categoriesLoading]); // Add categoriesLoading as dependency
 
-const handleSubmit = async (formData) => {
-  if (isLoading) return;
+  const handleSubmit = async (formData) => {
+    if (isLoading) return;
 
-  setIsLoading(true);
-  
-  try {
-    console.log('Submitting form data:', formData);
+    setIsLoading(true);
     
-    // Prepare the category data properly
-    let categoryData = formData.category;
-    
-    // If the form submitted just a category ID, we need to get the full category object
-    if (typeof categoryData === 'number' || typeof categoryData === 'string') {
-      const categoryId = parseInt(categoryData);
-      const category = categories.find(cat => cat.id === categoryId);
-      if (category) {
-        categoryData = category;
-      } else {
-        // Fallback to original product data if category not found in current list
+    try {
+      console.log('Submitting form data:', formData);
+      
+      // Prepare the category data properly
+      let categoryData = formData.category;
+      
+      // If the form submitted just a category ID, we need to get the full category object
+      if (typeof categoryData === 'number' || typeof categoryData === 'string') {
+        const categoryId = parseInt(categoryData);
+        const category = categories.find(cat => cat.id === categoryId);
+        if (category) {
+          categoryData = category;
+        } else {
+          // Fallback to original product data if category not found in current list
+          const originalProductData = await fetchProductBySlug(slug);
+          categoryData = originalProductData.category;
+        }
+      }
+      
+      // If we still don't have a category with slug, fetch the original data
+      if (!categoryData || !categoryData.slug) {
         const originalProductData = await fetchProductBySlug(slug);
         categoryData = originalProductData.category;
       }
-    }
-    
-    // If we still don't have a category with slug, fetch the original data
-    if (!categoryData || !categoryData.slug) {
-      const originalProductData = await fetchProductBySlug(slug);
-      categoryData = originalProductData.category;
-    }
-    
-    // Prepare the data with category object and slug
-    const submitData = {
-      ...formData,
-      slug: slug,
-      category: categoryData
-    };
-    
-    console.log('Submit data with category:', submitData);
-    
-    await editProduct(submitData);
-    toast.success("Product updated successfully!");
-    router.push("/admin/products");
-  } catch (error) {
-    console.error('Edit product error:', error);
-    
-    if (error.response?.data) {
-      const errorData = error.response.data;
       
-      if (errorData.non_field_errors) {
-        errorData.non_field_errors.forEach(err => {
-          if (err.includes('name, category must make a unique set')) {
-            toast.error('A product with this name already exists in the selected category. Please choose a different name or category.');
-          } else {
-            toast.error(err);
-          }
-        });
-      } else if (errorData.name) {
-        toast.error(`Name: ${Array.isArray(errorData.name) ? errorData.name.join(', ') : errorData.name}`);
-      } else if (errorData.category) {
-        toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category.join(', ') : errorData.category}`);
-      } else if (errorData.price) {
-        toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price.join(', ') : errorData.price}`);
-      } else if (errorData.detail) {
-        toast.error(errorData.detail);
+      // Prepare the data with category object and slug
+      const submitData = {
+        ...formData,
+        slug: slug,
+        category: categoryData
+      };
+      
+      console.log('Submit data with category:', submitData);
+      
+      await editProduct(submitData);
+      toast.success("Product updated successfully!");
+      router.push("/admin/products");
+    } catch (error) {
+      console.error('Edit product error:', error);
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        if (errorData.non_field_errors) {
+          errorData.non_field_errors.forEach(err => {
+            if (err.includes('name, category must make a unique set')) {
+              toast.error('A product with this name already exists in the selected category. Please choose a different name or category.');
+            } else {
+              toast.error(err);
+            }
+          });
+        } else if (errorData.name) {
+          toast.error(`Name: ${Array.isArray(errorData.name) ? errorData.name.join(', ') : errorData.name}`);
+        } else if (errorData.category) {
+          toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category.join(', ') : errorData.category}`);
+        } else if (errorData.price) {
+          toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price.join(', ') : errorData.price}`);
+        } else if (errorData.detail) {
+          toast.error(errorData.detail);
+        } else {
+          toast.error('Failed to update product. Please check your input and try again.');
+        }
+      } else if (error.message) {
+        toast.error(error.message);
       } else {
-        toast.error('Failed to update product. Please check your input and try again.');
+        toast.error('An unexpected error occurred. Please try again.');
       }
-    } else if (error.message) {
-      toast.error(error.message);
-    } else {
-      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleCancel = () => {
     if (isLoading) {
@@ -254,7 +244,7 @@ const handleSubmit = async (formData) => {
     );
   }
 
-  if (dataLoading) {
+  if (categoriesLoading || dataLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">

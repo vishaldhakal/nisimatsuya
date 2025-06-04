@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext/AuthContext';
 import {
   useWishlistQuery,
   useAddToWishlistMutation,
@@ -12,6 +13,7 @@ import {
 
 export const useWishlist = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [toastMessage, setToastMessage] = useState('');
 
   // Queries
@@ -32,11 +34,16 @@ export const useWishlist = () => {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  // Helper function to handle unauthenticated users
+  const handleUnauthenticated = () => {
+    router.push('/login');
+    return false;
+  };
+
   // Add to wishlist
   const addToWishlist = async (productId) => {
     if (!user) {
-      showToast('Please login to add items to wishlist.');
-      return false;
+      return handleUnauthenticated();
     }
 
     try {
@@ -56,8 +63,7 @@ export const useWishlist = () => {
   // Remove from wishlist by product ID (find item first)
   const removeFromWishlistByProductId = async (productId) => {
     if (!user) {
-      showToast('Please login to manage wishlist.');
-      return false;
+      return handleUnauthenticated();
     }
 
     const wishlistItem = wishlist.find(item => item.product?.id === productId);
@@ -88,6 +94,10 @@ export const useWishlist = () => {
 
   // Toggle wishlist (add if not present, remove if present)
   const toggleWishlist = async (productId) => {
+    if (!user) {
+      return handleUnauthenticated();
+    }
+
     if (isInWishlist(productId)) {
       return await removeFromWishlistByProductId(productId);
     } else {
@@ -127,20 +137,32 @@ export const useWishlistCount = () => {
 // Hook for wishlist toggle functionality
 export const useWishlistToggle = (productId) => {
   const { user } = useAuth();
+  const router = useRouter();
   const isInWishlist = useIsInWishlist(productId);
   const wishlistItem = useWishlistItemByProductId(productId);
   const addMutation = useAddToWishlistMutation();
   const removeMutation = useRemoveFromWishlistMutation();
 
   const toggle = async () => {
+    // Return early with specific result for unauthenticated users
     if (!user) {
-      throw new Error('Please login to manage wishlist');
+      router.push('/login');
+      return { success: false, requiresAuth: true, wasInWishlist: false };
     }
 
-    if (isInWishlist && wishlistItem) {
-      await removeMutation.mutateAsync(wishlistItem.id);
-    } else {
-      await addMutation.mutateAsync(productId);
+    try {
+      const wasInWishlist = isInWishlist;
+      
+      if (isInWishlist && wishlistItem) {
+        await removeMutation.mutateAsync(wishlistItem.id);
+      } else {
+        await addMutation.mutateAsync(productId);
+      }
+      
+      return { success: true, requiresAuth: false, wasInWishlist };
+    } catch (error) {
+      console.error('Wishlist toggle error:', error);
+      return { success: false, requiresAuth: false, wasInWishlist: isInWishlist, error };
     }
   };
 

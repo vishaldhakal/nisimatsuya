@@ -1,44 +1,48 @@
+// "use client";
+// import { useState, useEffect } from "react";
+// import { fetchCategories } from "../services/api/categoryService";
 
-"use client";
-import { useState, useEffect } from "react";
-import { fetchCategories, fetchProductsByCategory } from "../services/api/categoryService";
+// export function useCategories() {
+//   const [categories, setCategories] = useState([]);
+//   const [filteredCategories, setFilteredCategories] = useState([]);
+//   const [loading, setLoading] = useState(true);
 
-export function useCategories() {
-  const [categories, setCategories] = useState([]);
-  const [filteredCategories, setFilteredCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+//   useEffect(() => {
+//     let isMounted = true; 
 
-  useEffect(() => {
-    async function loadCategoriesWithProducts() {
-      try {
-        setLoading(true);
-        const cats = await fetchCategories();
-        setCategories(cats || []);
+//     async function loadCategoriesWithProducts() {
+//       try {
+//         setLoading(true);
+//         const cats = await fetchCategories();
         
-        const filtered = [];
-        for (const cat of cats || []) {
-          try {
-            const products = await fetchProductsByCategory(cat.slug);
-            if (products && products.length > 0) {
-              filtered.push(cat);
-            }
-          } catch (error) {
-            console.warn(`Error fetching products for category ${cat.slug}:`, error);
-            filtered.push(cat);
-          }
-        }
-        setFilteredCategories(filtered);
-      } catch (error) {
-        console.error('Error loading categories:', error);
-        setCategories([]);
-        setFilteredCategories([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    loadCategoriesWithProducts();
-  }, []);
+//         if (!isMounted) return; 
+        
+//         setCategories(cats || []);
+        
 
-  return { categories, filteredCategories, loading };
-}
+//         setFilteredCategories(cats || []);
+      
+        
+//       } catch (error) {
+//         console.error('Error loading categories:', error);
+//         if (isMounted) {
+//           setCategories([]);
+//           setFilteredCategories([]);
+//         }
+//       } finally {
+//         if (isMounted) {
+//           setLoading(false);
+//         }
+//       }
+//     }
+
+//     loadCategoriesWithProducts();
+
+//     // Cleanup function
+//     return () => {
+//       isMounted = false;
+//     };
+//   }, []); // Empty dependency array - only run once
+
+//   return { categories, filteredCategories, loading };
+// }

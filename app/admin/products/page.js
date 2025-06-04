@@ -7,37 +7,23 @@ import {
   ProductsCard,
   ProductsEmptyState,
 } from '../../../components/features/admin/products';
-import { fetchCategories } from '../../../services/api/categoryService';
-import { deleteProduct, fetchProducts } from '../../../services/api/productService';
+import { deleteProduct } from '../../../services/api/productService';
+import { useCategories } from '../../../contexts/CategoriesContext';
+import { useProducts } from '../../../contexts/ProductsContext';
 import { ArrowUpDown, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [categories, setCategories] = useState([]);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
-    setIsLoading(true);
-    Promise.all([fetchProducts(), fetchCategories()])
-      .then(([productsData, categoriesData]) => {
-        setProducts(Array.isArray(productsData) ? productsData : []);
-        setFilteredProducts(Array.isArray(productsData) ? productsData : []);
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  };
+  // Use contexts
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
+  const { products, loading: productsLoading, refreshProducts } = useProducts();
 
   useEffect(() => {
     let results = [...products];
@@ -67,6 +53,15 @@ export default function AdminProducts() {
     setFilteredProducts(results);
   }, [products, searchTerm, sortConfig]);
 
+  // Handle categories error
+  if (categoriesError) {
+    toast.error('Failed to load categories. Some features may not work properly.');
+  }
+
+  const loadData = () => {
+    refreshProducts();
+  };
+
   const handleSort = (key) => {
     setSortConfig(prev => ({
       key,
@@ -74,23 +69,20 @@ export default function AdminProducts() {
     }));
   };
 
-  
-const getCategorySlug = (product, categories = []) => {
-  if (product.category_slug) return product.category_slug;
-  if (product.category && typeof product.category === 'object' && product.category.slug) return product.category.slug;
-  if (product.category && typeof product.category === 'number' && categories.length > 0) {
-    const found = categories.find(cat => cat.id === product.category);
-    if (found) return found.slug;
-  }
-  console.error('Could not determine category slug for product:', product);
-  return 'unknown';
-};
+  const getCategorySlug = (product, categories = []) => {
+    if (product.category_slug) return product.category_slug;
+    if (product.category && typeof product.category === 'object' && product.category.slug) return product.category.slug;
+    if (product.category && typeof product.category === 'number' && categories.length > 0) {
+      const found = categories.find(cat => cat.id === product.category);
+      if (found) return found.slug;
+    }
+    console.error('Could not determine category slug for product:', product);
+    return 'unknown';
+  };
 
-  // Updated delete function that accepts category_slug and slug parameters
   const handleDeleteProduct = async (categoryOrProduct, maybeSlug) => {
     setIsDeleting(true);
     try {
-      // Support both (product, undefined) and (category_slug, slug) signatures
       let category_slug, slug;
       if (typeof categoryOrProduct === 'object') {
         const product = categoryOrProduct;
@@ -102,13 +94,10 @@ const getCategorySlug = (product, categories = []) => {
       }
 
       await deleteProduct(category_slug, slug);
-
-      setProducts(prevProducts => 
-        prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
-      );
-      setFilteredProducts(prevProducts => 
-        prevProducts.filter(p => !(p.slug === slug && getCategorySlug(p, categories) === category_slug))
-      );
+      
+      // Refresh products after successful deletion
+      await refreshProducts();
+      
       setShowDeleteConfirm(null);
       setActiveDropdown(null);
       toast.success('Product deleted successfully!');
@@ -121,7 +110,7 @@ const getCategorySlug = (product, categories = []) => {
   };
 
   const confirmDelete = (id) => {
-    if (isDeleting) return; // Prevent multiple delete attempts
+    if (isDeleting) return;
     setShowDeleteConfirm(id);
     setActiveDropdown(null);
   };
@@ -129,7 +118,7 @@ const getCategorySlug = (product, categories = []) => {
   const cancelDelete = () => setShowDeleteConfirm(null);
   const toggleDropdown = (productId) => setActiveDropdown(prev => prev === productId ? null : productId);
 
-  if (isLoading) {
+  if (productsLoading || categoriesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />

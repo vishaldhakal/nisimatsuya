@@ -1,30 +1,20 @@
 "use client";
-
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { ProductForm } from '../../../../components/features/products';
-import { addProduct, fetchCategories } from '../../../../services';
+import { addProduct } from '../../../../services';
+import { useCategories } from '../../../../contexts/CategoriesContext';
 
 export default function AddProduct() {
   const router = useRouter();
-  const [categories, setCategories] = useState([]);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const data = await fetchCategories();
-        setCategories(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        toast.error('Failed to load categories. Please refresh the page.');
-        setCategories([]);
-      }
-    };
-
-    loadCategories();
-  }, []);
+  // Handle categories loading error
+  if (categoriesError) {
+    toast.error('Failed to load categories. Please refresh the page.');
+  }
 
   const handleSubmit = async (formData) => {
     if (isLoading) return;
@@ -80,8 +70,20 @@ export default function AddProduct() {
     router.push('/admin/products');
   };
 
+  // Show loading state while categories are being fetched
+  if (categoriesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ProductForm 
+    <ProductForm
       onSubmit={handleSubmit}
       onCancel={handleCancel}
       isEditMode={false}

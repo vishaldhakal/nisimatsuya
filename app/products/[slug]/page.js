@@ -1,9 +1,9 @@
-// Clean Product Detail Page
 "use client";
 import { useEffect, useState } from "react";
 import { useCart } from "../../../components/features/cart/CartContext";
-import { fetchProducts, fetchProductBySlug } from "../../../services/api/productService";
-import { fetchCategories } from "../../../services/api/categoryService";
+import { fetchProductByCategoryAndSlug } from "../../../services/api/productService";
+import { useCategories } from "../../../contexts/CategoriesContext";
+import { useProducts } from "../../../contexts/ProductsContext";
 import {
   Breadcrumb,
   ProductImageGallery,
@@ -12,7 +12,6 @@ import {
   LoadingSpinner
 } from './components';
 
-// Safe component wrapper to catch rendering errors
 const SafeComponent = ({ children, fallback = null, componentName = "Component" }) => {
   try {
     return children;
@@ -25,7 +24,6 @@ const SafeComponent = ({ children, fallback = null, componentName = "Component" 
 export default function ProductDetail({ params }) {
   const { slug } = params;
   const [product, setProduct] = useState(null);
-  const [categories, setCategories] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -33,51 +31,46 @@ export default function ProductDetail({ params }) {
   const { addToCart, totalItems } = useCart();
   const [isAddedToCart, setIsAddedToCart] = useState(false);
 
+  // Use contexts
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
+  const { getProductBySlug, products, loading: productsLoading } = useProducts();
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        // First get all products to find the one with matching slug
-        const [productsData, categoriesData] = await Promise.all([
-          fetchProducts(),
-          fetchCategories()
-        ]);
-
-        // Ensure we have valid data
-        if (!Array.isArray(productsData)) {
-          throw new Error('Invalid products data received');
+        // First try to get product from context
+        let foundProduct = getProductBySlug(slug);
+        
+        // If not found in context and products are still loading, wait
+        if (!foundProduct && productsLoading) {
+          setLoading(true);
+          return;
         }
-        if (!Array.isArray(categoriesData)) {
-          throw new Error('Invalid categories data received');
-        }
-
-        // Find the product by slug
-        const foundProduct = productsData.find(p => p && p.slug === slug);
-        if (!foundProduct) {
+        
+        // If still not found after products loaded, show error
+        if (!foundProduct && !productsLoading) {
           throw new Error('Product not found');
         }
 
         // Now fetch the detailed product data using the correct API endpoint
         let productData;
         if (foundProduct.category_slug) {
-          // If category_slug exists, use fetchProductByCategoryAndSlug
-          const { fetchProductByCategoryAndSlug } = await import("../../../services/api/productService");
           productData = await fetchProductByCategoryAndSlug(foundProduct.category_slug, slug);
         } else {
-          // Use the deprecated method as fallback
+          // Fallback method
+          const { fetchProductBySlug } = await import("../../../services/api/productService");
           productData = await fetchProductBySlug(slug);
         }
 
-        // Validate product data before setting state
         if (!productData || typeof productData !== 'object') {
           throw new Error('Invalid product data received');
         }
 
         setProduct(productData);
         setSelectedImage(productData.images?.[0]?.image || null);
-        setCategories(categoriesData);
 
       } catch (error) {
         setError(error.message);
@@ -86,18 +79,15 @@ export default function ProductDetail({ params }) {
       }
     };
 
-    if (slug) {
+    if (slug && !productsLoading) {
       loadData();
     }
-  }, [slug]);
+  }, [slug, getProductBySlug, productsLoading]);
 
   const handleAddToCart = () => {
-    if (!product) {
-      return;
-    }
+    if (!product) return;
     
     try {
-      // Ensure all required fields are properly formatted
       const cartItem = {
         id: product.id,
         name: String(product.name || 'Unknown Product'),
@@ -116,7 +106,7 @@ export default function ProductDetail({ params }) {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading || categoriesLoading || productsLoading) return <LoadingSpinner />;
   
   if (error) {
     return (
@@ -129,6 +119,10 @@ export default function ProductDetail({ params }) {
         </div>
       </div>
     );
+  }
+
+  if (categoriesError) {
+    console.warn('Categories loading error:', categoriesError);
   }
 
   if (!product) {

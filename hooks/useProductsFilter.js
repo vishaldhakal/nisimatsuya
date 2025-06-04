@@ -1,32 +1,26 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchCategories, fetchProductsByCategory, fetchAllProducts, searchProducts } from "../services";
+import { fetchProductsByCategory, fetchAllProducts, searchProducts } from "../services";
+import { useCategories } from "../contexts/CategoriesContext"; // Import the categories context
 
 export const useProductsFilter = (initialCategory = "all") => {
+  const { categories } = useCategories();
+
   // Temporary states for user input (filters only)
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 50000 });
   const [sortBy, setSortBy] = useState("featured");
 
-  // Applied states - search updates in real-time, filters need button click
-  const [searchQuery, setSearchQuery] = useState(""); // Real-time search
+  const [searchQuery, setSearchQuery] = useState("");
   const [appliedCategory, setAppliedCategory] = useState(initialCategory);
   const [appliedPriceRange, setAppliedPriceRange] = useState(null); // Changed to null for no filters
   const [appliedSortBy, setAppliedSortBy] = useState("featured");
 
-  const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load categories on mount
-  useEffect(() => {
-    fetchCategories()
-      .then((data) => setCategories(data || []))
-      .catch(() => setCategories([]));
-  }, []);
 
-  // Helper function to check if price range is at default values
   const isPriceRangeDefault = (priceRng) => {
     return !priceRng || (priceRng.min === 0 && priceRng.max === 50000);
   };
@@ -154,7 +148,7 @@ export const useProductsFilter = (initialCategory = "all") => {
     appliedPriceRange: appliedPriceRange || { min: 0, max: 50000 }, // Return default for UI display
     appliedSortBy,
     
-    // Data
+    // Data - categories now comes from context
     categories,
     products: getFilteredAndSortedProducts(),
     loading,

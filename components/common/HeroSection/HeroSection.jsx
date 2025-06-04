@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Search, Baby, Gift, Truck, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchCategories } from "../../../services";
+import { useCategories } from "../../../contexts/CategoriesContext";
 import Link from "next/link";
 // Optional: Map category names to icons
 const categoryIcons = {
@@ -13,48 +13,20 @@ const categoryIcons = {
   gear: <Truck size={24} />,
 };
 
-// Background pattern SVG component
-const BackgroundPattern = () => (
-  <svg
-    className="absolute inset-0 w-full h-full opacity-10"
-    width="100%"
-    height="100%"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 100 100"
-  >
-    <defs>
-      <pattern
-        id="baby-pattern"
-        x="0"
-        y="0"
-        width="20"
-        height="20"
-        patternUnits="userSpaceOnUse"
-      >
-        <path d="M10,10 L20,0 L20,20 Z" fill="#EC4899" />
-        <circle cx="5" cy="5" r="3" fill="#F59E0B" />
-        <circle cx="15" cy="15" r="2" fill="#EC4899" />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#baby-pattern)" />
-  </svg>
-);
+
 
 export default function HeroSection() {
-  const [categories, setCategories] = useState([]);
+  const { categories, loading, error } = useCategories();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    fetchCategories()
-      .then((data) => setCategories(data || []))
-      .catch(() => setCategories([]));
-  }, []);
+ 
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to products page with search query
+      
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -67,8 +39,7 @@ export default function HeroSection() {
 
   return (
     <section className="relative bg-gradient-to-b from-yellow-50 to-pink-50 min-h-[600px] flex items-center justify-center overflow-hidden">
-      {/* Background pattern */}
-      {/* <BackgroundPattern /> */}
+
 
       {/* Blob decorations */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>

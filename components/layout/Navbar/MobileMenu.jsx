@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDownIcon, XIcon, User, ShoppingBag, Heart, LogOut } from "lucide-react";
 
-import { useAuth } from "../../../context/AuthContext/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext/AuthContext";
 import { useJWTSession } from "../../../hooks/useJWTSession";
 import { useWishlist } from "../../../hooks/useWishlist";
 

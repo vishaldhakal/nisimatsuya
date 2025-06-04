@@ -1,5 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { blogService } from '../../../../services/api/blogService';
 
 const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
@@ -27,6 +28,31 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
 
   // Determine if we're in edit mode
   const isEditMode = Boolean(blog);
+
+  // ReactQuill configuration
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'script': 'sub'}, { 'script': 'super' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'font': [] }],
+      [{ 'align': [] }],
+      ['link', 'image', 'video'],
+      ['blockquote', 'code-block'],
+      ['clean']
+    ],
+  };
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'script', 'indent', 'direction',
+    'color', 'background', 'font', 'align',
+    'link', 'image', 'video', 'blockquote', 'code-block'
+  ];
 
   useEffect(() => {
     const initializeForm = async () => {
@@ -106,6 +132,15 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
     }
   };
 
+  // Handle ReactQuill description change
+  const handleDescriptionChange = (content) => {
+    setFormData(prev => ({ ...prev, description: content }));
+    
+    if (errors.description) {
+      setErrors(prev => ({ ...prev, description: '' }));
+    }
+  };
+
   const handleTagChange = (tagId) => {
     const currentSelectedTagIds = formData.tags;
     const isSelected = currentSelectedTagIds.includes(tagId);
@@ -182,7 +217,9 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
       newErrors.title = 'Title is required';
     }
     
-    if (!formData.description?.trim()) {
+    // Check if description is empty (ReactQuill returns '<p><br></p>' for empty content)
+    const descriptionText = formData.description?.replace(/<[^>]*>/g, '').trim();
+    if (!descriptionText) {
       newErrors.description = 'Description is required';
     }
     
@@ -276,22 +313,24 @@ const BlogForm = ({ blog = null, onSubmit, onCancel, isLoading = false }) => {
           {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
         </div>
 
-        {/* Description */}
+        {/* Description with ReactQuill */}
         <div>
-          <label htmlFor="description" className="block mb-1 text-sm font-medium text-gray-700">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             Description *
           </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            rows={10}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.description ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Write your blog description here..."
-          />
+          <div className={`border rounded-md ${errors.description ? 'border-red-500' : 'border-gray-300'}`}>
+            <ReactQuill
+              theme="snow"
+              value={formData.description}
+              onChange={handleDescriptionChange}
+              modules={quillModules}
+              formats={quillFormats}
+              placeholder="Write your blog description here..."
+              style={{
+                minHeight: '200px',
+              }}
+            />
+          </div>
           {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useAuth } from "../../../context/AuthContext/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext/AuthContext";
 import UserDropdown from "./UserDropdown";
 
 export default function AuthLinks() {

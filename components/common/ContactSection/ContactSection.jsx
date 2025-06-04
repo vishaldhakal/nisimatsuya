@@ -1,7 +1,19 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { MapPin, Phone, Mail, Instagram, Facebook, Twitter } from "lucide-react";
 import Link from "next/link";
+import axiosInstance from '../../../lib/api/axiosInstance';
+
 const ContactSection = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+
   const contactInfo = [
     {
       icon: <MapPin className="w-6 h-6 text-pink-500" />,
@@ -19,6 +31,45 @@ const ContactSection = () => {
       details: ["General Inquiries", "hello@babyshop.com"]
     }
   ];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await axiosInstance.post('/api/contact/', {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        message: formData.message
+      });
+
+      setSubmitStatus({ type: 'success', message: 'Message sent successfully!' });
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmitStatus({ 
+        type: 'error', 
+        message: error.response?.data?.message || 'Failed to send message. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section className="relative min-h-screen py-10 bg-gradient-to-b from-yellow-50 to-pink-50">
@@ -78,24 +129,42 @@ const ContactSection = () => {
           <div className="overflow-hidden bg-white border border-pink-100 shadow-lg rounded-2xl">
             <div className="p-8 md:p-10">
               <h3 className="mb-6 text-2xl font-bold text-gray-900">Send us a message</h3>
-              <form className="space-y-6">
+              
+              {/* Status message */}
+              {submitStatus && (
+                <div className={`mb-6 p-4 rounded-lg ${
+                  submitStatus.type === 'success' 
+                    ? 'bg-green-100 text-green-700 border border-green-200' 
+                    : 'bg-red-100 text-red-700 border border-red-200'
+                }`}>
+                  {submitStatus.message}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div className="group">
-                    <label htmlFor="first-name" className="block mb-1 text-sm font-medium text-gray-700">First name</label>
+                    <label htmlFor="firstName" className="block mb-1 text-sm font-medium text-gray-700">First name</label>
                     <input
                       type="text"
-                      name="first-name"
-                      id="first-name"
+                      name="firstName"
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
                       className="block w-full px-4 py-3 text-gray-900 transition-colors duration-300 bg-transparent border border-gray-300 rounded-lg focus:border-pink-500 focus:ring-pink-500"
                       placeholder="Your first name"
                     />
                   </div>
                   <div className="group">
-                    <label htmlFor="last-name" className="block mb-1 text-sm font-medium text-gray-700">Last name</label>
+                    <label htmlFor="lastName" className="block mb-1 text-sm font-medium text-gray-700">Last name</label>
                     <input
                       type="text"
-                      name="last-name"
-                      id="last-name"
+                      name="lastName"
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
                       className="block w-full px-4 py-3 text-gray-900 transition-colors duration-300 bg-transparent border border-gray-300 rounded-lg focus:border-pink-500 focus:ring-pink-500"
                       placeholder="Your last name"
                     />
@@ -108,6 +177,9 @@ const ContactSection = () => {
                     type="email"
                     name="email"
                     id="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
                     className="block w-full px-4 py-3 text-gray-900 transition-colors duration-300 bg-transparent border border-gray-300 rounded-lg focus:border-pink-500 focus:ring-pink-500"
                     placeholder="your.email@example.com"
                   />
@@ -119,6 +191,9 @@ const ContactSection = () => {
                     id="message"
                     name="message"
                     rows={5}
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    required
                     className="block w-full px-4 py-3 text-gray-900 transition-colors duration-300 bg-transparent border border-gray-300 rounded-lg resize-none focus:border-pink-500 focus:ring-pink-500"
                     placeholder="How can we help you?"
                   />
@@ -127,9 +202,14 @@ const ContactSection = () => {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="inline-flex justify-center w-full px-8 py-4 text-base font-medium text-white transition-all duration-300 rounded-lg bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                    disabled={isSubmitting}
+                    className={`inline-flex justify-center w-full px-8 py-4 text-base font-medium text-white transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 ${
+                      isSubmitting 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600'
+                    }`}
                   >
-                    Send Message
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </div>
               </form>

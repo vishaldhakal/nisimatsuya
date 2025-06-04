@@ -6,7 +6,7 @@ import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
 import CartIcon from "./CartIcon";
 import AuthLinks from "./AuthLinks";
-import { useCategories } from "../../../hooks/useCategories";
+import { useCategories } from "../../../contexts/CategoriesContext";
 import { useMobileMenu } from "../../../hooks/useMobileMenu";
 import { MenuIcon, XIcon } from "lucide-react";
 

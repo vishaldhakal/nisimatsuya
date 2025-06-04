@@ -7,7 +7,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../cart/CartContext";
 import { useState, useEffect } from "react";
 import WishlistButton from '../../../../components/ui/WishlistButton';
-import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
+import { useWishlistNotification } from '../../../../contexts/WishlistNotificationContext';
 const getImageUrl = (imageUrl) => {
   // If the image URL already starts with http/https, use it as is
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -56,11 +56,26 @@ const ProductCard = ({ product, isSpecial = false }) => {
   };
 
   // Handle wishlist feedback
-  const handleWishlistToggle = (wasInWishlist, productId) => {
-    if (wasInWishlist) {
-      showNotification('Removed from wishlist', 'info');
-    } else {
-      showNotification('Added to wishlist ❤️', 'success');
+ const handleWishlistToggle = (wasInWishlist, productId, result) => {
+    // Check if user needs to login
+    if (result?.requiresAuth) {
+      showNotification('You must login to add items to wishlist', 'info');
+      return;
+    }
+    
+    // Check if there was an error
+    if (result?.error) {
+      showNotification('Something went wrong. Please try again.', 'error');
+      return;
+    }
+    
+    // Show success message based on the action
+    if (result?.success) {
+      if (wasInWishlist) {
+        showNotification('Removed from wishlist', 'info');
+      } else {
+        showNotification('Added to wishlist ❤️', 'success');
+      }
     }
   };
 

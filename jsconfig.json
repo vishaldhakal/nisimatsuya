@@ -9,7 +9,7 @@
       "@/services/*": ["services/*"],
       "@/types/*": ["types/*"],
       "@/config/*": ["config/*"],
-      "@/context/*": ["context/*"],
+      "@/context/*": ["contexts/*"],
       "@/styles/*": ["styles/*"],
       "@/public/*": ["public/*"]
     }

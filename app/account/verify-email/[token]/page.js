@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '../../../../context/AuthContext/AuthContext';
+import { useAuth } from '../../../../contexts/AuthContext/AuthContext';
 import Link from 'next/link';
 
 export default function VerifyEmailTokenPage() {

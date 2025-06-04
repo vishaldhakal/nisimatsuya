@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../../context/AuthContext/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext/AuthContext";
 import { useWishlist } from "../../../hooks/useWishlist"; // Import wishlist hook
 
 export default function UserDropdown({ isMobile = false, onClose }) {

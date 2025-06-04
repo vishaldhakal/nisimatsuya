@@ -7,7 +7,7 @@ import { useCart } from "../../cart/CartContext";
 import Image from "next/image";
 import Link from "next/link";
 import WishlistButton from '../../../../components/ui/WishlistButton';
-import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
+import { useWishlistNotification } from '../../../../contexts/WishlistNotificationContext';
 
 const getImageUrl = (imageUrl) => {
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -50,17 +50,26 @@ const ProductsList2 = ({
     }, 3000);
   };
 
-  const handleWishlistToggle = (wasInWishlist, productId, e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.nativeEvent?.stopImmediatePropagation();
+ const handleWishlistToggle = (wasInWishlist, productId, result) => {
+    // Check if user needs to login
+    if (result?.requiresAuth) {
+      showNotification('You must login to add items to wishlist', 'info');
+      return;
     }
     
-    if (wasInWishlist) {
-      showNotification('Removed from wishlist', 'info');
-    } else {
-      showNotification('Added to wishlist ❤️', 'success');
+    // Check if there was an error
+    if (result?.error) {
+      showNotification('Something went wrong. Please try again.', 'error');
+      return;
+    }
+    
+    // Show success message based on the action
+    if (result?.success) {
+      if (wasInWishlist) {
+        showNotification('Removed from wishlist', 'info');
+      } else {
+        showNotification('Added to wishlist ❤️', 'success');
+      }
     }
   };
 

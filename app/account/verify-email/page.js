@@ -3,7 +3,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '../../../context/AuthContext/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext/AuthContext';
 import Link from 'next/link';
 
 function VerifyEmailContent() {

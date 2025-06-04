@@ -3,7 +3,7 @@ import React from 'react';
 import { Share2, Truck, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import WishlistButton from '../../../../components/ui/WishlistButton';
-import { useWishlistNotification } from '../../../../context/WishlistNotificationContext';
+import { useWishlistNotification } from '../../../../contexts/WishlistNotificationContext';
 
 export const ProductInfo = ({ 
   product, 
@@ -34,20 +34,82 @@ export const ProductInfo = ({
   const productDescription = String(product.description || '');
 
   // Handle wishlist feedback
-  const handleWishlistToggle = (wasInWishlist, productId) => {
-    if (wasInWishlist) {
-      showNotification('Removed from wishlist', 'info');
-    } else {
-      showNotification('Added to wishlist ❤️', 'success');
+  const handleWishlistToggle = (wasInWishlist, productId, result) => {
+    // Check if user needs to login
+    if (result?.requiresAuth) {
+      showNotification('You must login to add items to wishlist', 'info');
+      return;
+    }
+    
+    // Check if there was an error
+    if (result?.error) {
+      showNotification('Something went wrong. Please try again.', 'error');
+      return;
+    }
+    
+    // Show success message based on the action
+    if (result?.success) {
+      if (wasInWishlist) {
+        showNotification('Removed from wishlist', 'info');
+      } else {
+        showNotification('Added to wishlist ❤️', 'success');
+      }
+    }
+  };
+
+  // Handle share functionality
+  const handleShare = async () => {
+    const shareData = {
+      title: productName,
+      text: `Check out this product: ${productName}`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        showNotification('Product shared successfully!', 'success');
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        showNotification('Product link copied to clipboard!', 'success');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback: try to copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        showNotification('Product link copied to clipboard!', 'success');
+      } catch (clipboardError) {
+        showNotification('Unable to share product', 'error');
+      }
     }
   };
 
   return (
     <div className="p-4 space-y-4 sm:space-y-6 sm:p-0">
-      <div>
-        <h1 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+      {/* Header with title and wishlist/share buttons */}
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="flex-1 text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
           {productName}
         </h1>
+        
+        {/* Wishlist and Share buttons positioned at top right */}
+        <div className="flex gap-2 shrink-0">
+          <WishlistButton
+            productId={product.id}
+            size="md"
+            variant="filled"
+            onToggle={handleWishlistToggle}
+          />
+          
+          <button 
+            onClick={handleShare}
+            className="p-3 transition-colors border-2 border-gray-200 rounded-xl hover:bg-gray-50 shrink-0"
+          >
+            <Share2 className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Price Section - Stack on mobile, inline on desktop */}
@@ -113,28 +175,14 @@ export const ProductInfo = ({
           </button>
         </div>
 
-        {/* Action buttons - Full width on mobile */}
-        <div className="flex flex-1 gap-3">
-          <button 
-            onClick={handleAddToCart}
-            disabled={stock === 0}
-            className="flex-1 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 sm:px-6 bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed sm:text-base"
-          >
-            {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </button>
-          
-          {/* Simple Wishlist Button */}
-          <WishlistButton
-            productId={product.id}
-            size="md"
-            variant="filled"
-            onToggle={handleWishlistToggle}
-          />
-          
-          <button className="p-3 transition-colors border-2 border-gray-200 rounded-xl hover:bg-gray-50 shrink-0">
-            <Share2 className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6" />
-          </button>
-        </div>
+        {/* Add to Cart button - Full width on mobile */}
+        <button 
+          onClick={handleAddToCart}
+          disabled={stock === 0}
+          className="flex-1 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 sm:px-6 bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed sm:text-base"
+        >
+          {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+        </button>
       </div>
 
       {/* Cart Confirmation */}
@@ -163,7 +211,6 @@ export const ProductInfo = ({
       {/* Service Info - Responsive grid */}
       <div className="pt-4 space-y-3 border-t border-gray-200 sm:pt-6 sm:space-y-4">
         {[
-          { icon: Truck, text: "Free Delivery on orders above ₹499" },
           { icon: Shield, text: "100% Authentic Products" },
           { icon: RefreshCw, text: "Easy 7 Days Returns" }
         ].map(({ icon: Icon, text }, index) => (
