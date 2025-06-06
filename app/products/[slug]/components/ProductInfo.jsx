@@ -1,4 +1,4 @@
-// Updated ProductInfo component
+
 import React from 'react';
 import { Share2, Truck, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';

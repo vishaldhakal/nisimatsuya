@@ -1,4 +1,4 @@
-// components/layout/Navbar/CartIcon.jsx
+
 "use client";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
@@ -8,12 +8,16 @@ export default function CartIcon() {
   const { totalItems } = useCart();
 
   return (
-    <Link href="/cart" className="ml-0 md:ml-4 relative">
-      <ShoppingBag className="w-6 h-6 text-pink-600" />
-      {totalItems > 0 && (
-        <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-          {totalItems > 9 ? '9+' : totalItems}
-        </span>
-      )}
+    <Link href="/cart" className="relative ml-0 md:ml-4">
+      <div data-cart-icon className="relative">
+        <ShoppingBag className="w-6 h-6 text-pink-600" />
+        {totalItems > 0 && (
+          <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-pink-500 rounded-full -top-2 -right-2">
+            {totalItems > 9 ? '9+' : totalItems}
+          </span>
+        )}
+      </div>
     </Link>
-)};
+  );
+}
+

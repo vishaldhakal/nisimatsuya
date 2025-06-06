@@ -8,24 +8,22 @@ export default function AuthLinks() {
 
   if (!isAuthenticated) {
     return (
-      <div className="hidden md:flex items-center">
+      <div className="items-center hidden md:flex">
         <Link
           href="/login"
-          className="text-pink-700 hover:text-pink-900 font-semibold"
+          className="font-semibold text-pink-700 hover:text-pink-900"
         >
           Login
         </Link>
         <span className="text-gray-400">/</span>
         <Link
           href="/signup"
-          className="text-pink-700 hover:text-pink-900 font-semibold"
+          className="font-semibold text-pink-700 hover:text-pink-900"
         >
           signup
         </Link>
       </div>
     );
   }
-
-  // Use UserDropdown for authenticated users
   return <UserDropdown />;
 }

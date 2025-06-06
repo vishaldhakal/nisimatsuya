@@ -335,25 +335,7 @@ export default function WishlistPage() {
                       </button>
                     </div>
 
-                    {/* Product summary */}
-                    <div className="flex items-center gap-3 p-2 mb-3 bg-white rounded-lg sm:p-3">
-                      <img
-                        src={getImageUrl(addedProduct.thumbnail_image)}
-                        alt={addedProduct.name}
-                        className="object-cover w-10 h-10 rounded-lg sm:w-12 sm:h-12"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-gray-900 truncate sm:text-sm">
-                          {addedProduct.name}
-                        </p>
-                        <p className="text-xs text-gray-600 sm:text-sm">
-                          ₹{parseFloat(addedProduct.price).toLocaleString('en-IN', { 
-                            minimumFractionDigits: 2, 
-                            maximumFractionDigits: 2 
-                          })}
-                        </p>
-                      </div>
-                    </div>
+                    
 
                     {/* Action buttons */}
                     <div className="space-y-2 sm:space-y-0 sm:flex sm:gap-3">

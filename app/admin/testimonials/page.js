@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -96,28 +95,34 @@ export default function AdminTestimonialsPage() {
   };
 
   return (
-    <div className="container px-4 py-6 mx-auto">
-      <TestimonialsHeader 
-        onAdd={handleAdd}
-        testimonialsCount={testimonials.length}
-      />
-      
-      <div className="bg-white rounded-lg shadow">
-        <TestimonialsTable
-          testimonials={testimonials}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          isLoading={isLoading}
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Container with responsive padding */}
+      <div className="container px-3 py-4 mx-auto max-w-7xl sm:px-4 md:px-6 lg:px-8 sm:py-6">
+        {/* Header Section */}
+        <TestimonialsHeader 
+          onAdd={handleAdd}
+          testimonialsCount={testimonials.length}
+        />
+        
+        {/* Content Card with responsive design */}
+        <div className="overflow-hidden bg-white rounded-lg shadow-sm sm:shadow">
+          <TestimonialsTable
+            testimonials={testimonials}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {/* Modal */}
+        <TestimonialModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          testimonial={editingTestimonial}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
         />
       </div>
-
-      <TestimonialModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        testimonial={editingTestimonial}
-        onSubmit={handleSubmit}
-        isLoading={isSubmitting}
-      />
     </div>
   );
 }

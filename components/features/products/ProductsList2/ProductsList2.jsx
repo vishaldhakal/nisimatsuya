@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Grid3X3, List, ShoppingCart } from "lucide-react";
 import ProductCard from "../ProductCard/ProductCard";
 import { useCart } from "../../cart/CartContext";
@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import WishlistButton from '../../../../components/ui/WishlistButton';
 import { useWishlistNotification } from '../../../../contexts/WishlistNotificationContext';
+import FlyingCartAnimation from '../../cart/FlyingCartAnimation';
 
 const getImageUrl = (imageUrl) => {
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -23,14 +24,54 @@ const ProductsList2 = ({
   const { addToCart } = useCart();
   const { showNotification } = useWishlistNotification();
   const [addedItems, setAddedItems] = useState({});
-  const [viewMode, setViewMode] = useState('grid'); 
+  const [viewMode, setViewMode] = useState('grid');
+  const [flyingAnimation, setFlyingAnimation] = useState({
+    isActive: false,
+    startPosition: null,
+    targetPosition: null,
+    productImage: null
+  });
 
-  const handleAddToCart = (product, e) => {
+  // Get cart icon position
+  const getCartIconPosition = () => {
+    const cartIcon = document.querySelector('[data-cart-icon]');
+    if (cartIcon) {
+      const rect = cartIcon.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+    return {
+      x: window.innerWidth - 50,
+      y: 20
+    };
+  };
+
+  const handleAddToCart = (product, e, buttonRef) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
-      // Additional prevention for event bubbling
       e.nativeEvent?.stopImmediatePropagation();
+    }
+    
+    // Get button position for animation
+    if (buttonRef && buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const startPosition = {
+        x: buttonRect.left + buttonRect.width / 2,
+        y: buttonRect.top + buttonRect.height / 2
+      };
+
+      const targetPosition = getCartIconPosition();
+
+      // Start flying animation
+      setFlyingAnimation({
+        isActive: true,
+        startPosition,
+        targetPosition,
+        productImage: getImageUrl(product.images[0].image)
+      });
     }
     
     addToCart({
@@ -50,20 +91,26 @@ const ProductsList2 = ({
     }, 3000);
   };
 
- const handleWishlistToggle = (wasInWishlist, productId, result) => {
-    // Check if user needs to login
+  const handleAnimationComplete = () => {
+    setFlyingAnimation({
+      isActive: false,
+      startPosition: null,
+      targetPosition: null,
+      productImage: null
+    });
+  };
+
+  const handleWishlistToggle = (wasInWishlist, productId, result) => {
     if (result?.requiresAuth) {
       showNotification('You must login to add items to wishlist', 'info');
       return;
     }
     
-    // Check if there was an error
     if (result?.error) {
       showNotification('Something went wrong. Please try again.', 'error');
       return;
     }
     
-    // Show success message based on the action
     if (result?.success) {
       if (wasInWishlist) {
         showNotification('Removed from wishlist', 'info');
@@ -77,6 +124,7 @@ const ProductsList2 = ({
     const marketPrice = product.market_price || product.mrp;
     const sellingPrice = product.price;
     const isAdded = addedItems[product.id];
+    const addToCartButtonRef = useRef(null);
 
     return (
       <div className="flex flex-col items-start p-4 transition-all duration-300 bg-white border border-gray-200 sm:flex-row sm:items-center sm:p-6 rounded-2xl hover:shadow-lg group">
@@ -163,7 +211,8 @@ const ProductsList2 = ({
           </div>
           
           <button
-            onClick={(e) => handleAddToCart(product, e)}
+            ref={addToCartButtonRef}
+            onClick={(e) => handleAddToCart(product, e, addToCartButtonRef)}
             disabled={isAdded}
             className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 font-medium rounded-xl transition-all duration-200 flex-1 sm:flex-initial text-sm sm:text-base ${
               isAdded 
@@ -212,62 +261,73 @@ const ProductsList2 = ({
   }
 
   return (
-    <div className="px-4 space-y-4 sm:space-y-6 sm:px-0">
-      {/* View Toggle Header */}
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-600 sm:text-base">
-            Showing <span className="font-semibold">{products.length}</span> products
-          </p>
+    <>
+      <div className="px-4 space-y-4 sm:space-y-6 sm:px-0">
+        {/* View Toggle Header */}
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-600 sm:text-base">
+              Showing <span className="font-semibold">{products.length}</span> products
+            </p>
+          </div>
+          
+          <div className="flex items-center w-full gap-1 p-1 bg-gray-100 rounded-lg sm:gap-2 sm:w-auto">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-md font-medium transition-all duration-200 flex-1 sm:flex-initial text-sm sm:text-base ${
+                viewMode === 'grid'
+                  ? 'bg-white text-pink-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <Grid3X3 size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span>Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-md font-medium transition-all duration-200 flex-1 sm:flex-initial text-sm sm:text-base ${
+                viewMode === 'list'
+                  ? 'bg-white text-pink-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <List size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span>List</span>
+            </button>
+          </div>
         </div>
+
         
-        <div className="flex items-center w-full gap-1 p-1 bg-gray-100 rounded-lg sm:gap-2 sm:w-auto">
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-md font-medium transition-all duration-200 flex-1 sm:flex-initial text-sm sm:text-base ${
-              viewMode === 'grid'
-                ? 'bg-white text-pink-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <Grid3X3 size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span>Grid</span>
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-md font-medium transition-all duration-200 flex-1 sm:flex-initial text-sm sm:text-base ${
-              viewMode === 'list'
-                ? 'bg-white text-pink-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <List size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span>List</span>
-          </button>
-        </div>
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3 sm:space-y-4">
+            {products.map((product) => (
+              <ProductListItem
+                key={product.id}
+                product={product}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3 sm:space-y-4">
-          {products.map((product) => (
-            <ProductListItem
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      {/* Flying Cart Animation */}
+      <FlyingCartAnimation
+        isActive={flyingAnimation.isActive}
+        startPosition={flyingAnimation.startPosition}
+        targetPosition={flyingAnimation.targetPosition}
+        onComplete={handleAnimationComplete}
+        productImage={flyingAnimation.productImage}
+      />
+    </>
   );
 };
 

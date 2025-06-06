@@ -54,9 +54,9 @@ const TestimonialForm = ({ testimonial, onSubmit, onCancel, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       <div>
-        <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="name" className="block mb-1 text-sm font-medium text-gray-700 sm:mb-2">
           Name *
         </label>
         <input
@@ -66,13 +66,13 @@ const TestimonialForm = ({ testimonial, onSubmit, onCancel, isLoading }) => {
           value={formData.name}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter customer name"
         />
       </div>
 
       <div>
-        <label htmlFor="designation" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="designation" className="block mb-1 text-sm font-medium text-gray-700 sm:mb-2">
           Designation
         </label>
         <input
@@ -81,13 +81,13 @@ const TestimonialForm = ({ testimonial, onSubmit, onCancel, isLoading }) => {
           name="designation"
           value={formData.designation}
           onChange={handleInputChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter job title or designation"
         />
       </div>
 
       <div>
-        <label htmlFor="comment" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="comment" className="block mb-1 text-sm font-medium text-gray-700 sm:mb-2">
           Comment *
         </label>
         <textarea
@@ -96,14 +96,14 @@ const TestimonialForm = ({ testimonial, onSubmit, onCancel, isLoading }) => {
           value={formData.comment}
           onChange={handleInputChange}
           required
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          rows={3}
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md resize-none sm:text-base sm:rows-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter testimonial comment"
         />
       </div>
 
       <div>
-        <label htmlFor="image" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="image" className="block mb-1 text-sm font-medium text-gray-700 sm:mb-2">
           Profile Image
         </label>
         <input
@@ -112,31 +112,31 @@ const TestimonialForm = ({ testimonial, onSubmit, onCancel, isLoading }) => {
           name="image"
           onChange={handleImageChange}
           accept="image/*"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         {imagePreview && (
           <div className="mt-2">
             <img
               src={imagePreview}
               alt="Preview"
-              className="object-cover w-20 h-20 border-2 border-gray-200 rounded-full"
+              className="object-cover w-16 h-16 border-2 border-gray-200 rounded-full sm:w-20 sm:h-20"
             />
           </div>
         )}
       </div>
 
-      <div className="flex justify-end pt-4 space-x-3">
+      <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-3 sm:gap-0">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md sm:w-auto hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md sm:w-auto hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Saving...' : testimonial ? 'Update' : 'Create'}
         </button>

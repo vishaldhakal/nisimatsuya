@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext/AuthContext";
-import { useWishlist } from "../../../hooks/useWishlist"; // Import wishlist hook
+import { useWishlist } from "../../../hooks/useWishlist"; 
 
 export default function UserDropdown({ isMobile = false, onClose }) {
   const { user, logout } = useAuth();

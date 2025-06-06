@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { fetchProductsByCategory, fetchAllProducts, searchProducts } from "../services";
-import { useCategories } from "../contexts/CategoriesContext"; // Import the categories context
+import { useCategories } from "../contexts/CategoriesContext"; 
 
 export const useProductsFilter = (initialCategory = "all") => {
   const { categories } = useCategories();

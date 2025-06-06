@@ -1,12 +1,19 @@
-
 'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import dynamic from 'next/dynamic';
 import blogService from '../../../../services/api/blogService';
-import { BlogForm } from '../../../../components/features/admin/blogs';
 
+// Dynamically import BlogForm without SSR
+const BlogForm = dynamic(
+  () => import('../../../../components/features/admin/blogs').then(mod => ({ default: mod.BlogForm })),
+  { 
+    ssr: false,
+    loading: () => <div className="flex justify-center py-8"><div className="text-gray-500">Loading...</div></div>
+  }
+);
 
 const AddBlogPage = () => {
   const router = useRouter();
