@@ -172,7 +172,7 @@ export const RelatedProductCard = ({ product }) => {
     if (product.image) {
       return `${process.env.NEXT_PUBLIC_API_URL}${product.image}`;
     }
-    return '/placeholder-product.jpg';
+    return '/images/fallback.png';
   };
 
   const productImageUrl = getImageUrl();
@@ -224,7 +224,7 @@ export const RelatedProductCard = ({ product }) => {
                   isHovered ? 'scale-110' : 'scale-100'
                 }`}
                 onError={(e) => {
-                  e.target.src = '/placeholder-product.jpg';
+                  e.target.src = '/images/fallback.png';
                 }}
               />
               

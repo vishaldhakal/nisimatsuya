@@ -5,12 +5,12 @@ import {
   StatCard,
   LoadingState,
   RevenueChart,
-  RecentOrdersTable
+  
 } from '../../components/features/admin/index';
 
 import { useRouter } from 'next/navigation';
 import dashboardService from '../../services/api/dashboardService';
-import { fetchOrders } from '../../services/api/orderService';
+
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -20,9 +20,7 @@ export default function AdminDashboard() {
     pendingOrders: 0,
     revenue: 0
   });
-  const [recentOrders, setRecentOrders] = useState([]); // Add state for recent orders
   const [isLoading, setIsLoading] = useState(true);
-  const [isOrdersLoading, setIsOrdersLoading] = useState(true); // Separate loading state for orders
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -34,9 +32,7 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, [router]);
 
-  /**
-   * Fetch both dashboard statistics and recent orders
-   */
+ 
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
@@ -45,7 +41,6 @@ export default function AdminDashboard() {
       // Fetch dashboard stats and recent orders concurrently
       const [statsResponse, ordersResponse] = await Promise.allSettled([
         fetchDashboardStats(),
-        fetchRecentOrders()
       ]);
 
       // Handle stats response
@@ -54,11 +49,7 @@ export default function AdminDashboard() {
         setError('Failed to load dashboard statistics');
       }
 
-      // Handle orders response
-      if (ordersResponse.status === 'rejected') {
-        console.error('Orders fetch failed:', ordersResponse.reason);
-        // Don't set main error for orders failure, just log it
-      }
+      
 
     } catch (err) {
       console.error('Dashboard fetch error:', err);
@@ -90,31 +81,7 @@ export default function AdminDashboard() {
     }
   };
 
-  /**
-   * Fetch recent 5 orders
-   */
-  const fetchRecentOrders = async () => {
-    try {
-      setIsOrdersLoading(true);
-      const response = await fetchOrders({
-        page: 1,
-        page_size: 5 // Fetch only 5 recent orders
-      });
-      
-      // Handle both paginated and non-paginated responses
-      const orders = response.results || response.data || response;
-      setRecentOrders(Array.isArray(orders) ? orders : []);
-    } catch (err) {
-      console.error('Recent orders fetch error:', err);
-      setRecentOrders([]); // Set empty array on error
-    } finally {
-      setIsOrdersLoading(false);
-    }
-  };
-
-  /**
-   * Refresh data handler
-   */
+  
   const handleRefresh = () => {
     fetchDashboardData();
   };
@@ -181,22 +148,8 @@ export default function AdminDashboard() {
           <RevenueChart />
         </div>
 
-        {/* Recent Orders Section */}
-        <div className="mb-8">
-          {isOrdersLoading ? (
-            <div className="p-6 bg-white shadow-sm rounded-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium">Recent Orders</h3>
-              </div>
-              <div className="flex items-center justify-center py-12">
-                <RefreshCw className="w-6 h-6 text-gray-400 animate-spin" />
-                <span className="ml-2 text-gray-500">Loading orders...</span>
-              </div>
-            </div>
-          ) : (
-            <RecentOrdersTable orders={recentOrders} />
-          )}
-        </div>
+      
+        
       </div>
     </div>
   );

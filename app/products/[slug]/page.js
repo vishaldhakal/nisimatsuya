@@ -11,6 +11,7 @@ import {
   RelatedProductsSection,
   LoadingSpinner
 } from './components';
+import ProductReviewsSection from './components/ProductReviewsSection';
 
 const SafeComponent = ({ children, fallback = null, componentName = "Component" }) => {
   try {
@@ -171,6 +172,10 @@ export default function ProductDetail({ params }) {
             
           </div>
         </div>
+
+        <SafeComponent componentName="ProductReviewsSection">
+          <ProductReviewsSection product={product} />
+        </SafeComponent>
 
         <SafeComponent componentName="RelatedProductsSection">
           <RelatedProductsSection product={product} />

@@ -88,7 +88,7 @@ export default function BlogsPage() {
           
           <h1 className="mb-6 text-5xl font-bold leading-tight text-transparent md:text-6xl lg:text-7xl bg-gradient-to-r from-pink-600 via-purple-600 to-orange-500 bg-clip-text">
             Nishimatsuya
-            <span className="block mt-2 text-4xl md:text-5xl lg:text-6xl">Baby Blog</span>
+            <span className="block mt-2 text-4xl md:text-5xl lg:text-6xl"> Blog</span>
           </h1>
           
           <p className="max-w-3xl mx-auto mb-8 text-xl leading-relaxed text-gray-600 md:text-2xl">

@@ -157,33 +157,43 @@ export const ProductInfo = ({
       )}
 
       {/* Quantity and Add to Cart - Stack on mobile */}
-      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-        {/* Quantity Selector */}
-        <div className="flex items-center justify-center w-full border-2 border-gray-200 rounded-lg sm:justify-start sm:w-auto">
-          <button
-            onClick={() => setQuantity(Math.max(1, safeQuantity - 1))}
-            className="flex-1 px-4 py-3 text-gray-600 transition-colors sm:px-3 sm:py-2 hover:bg-gray-100 sm:flex-none"
-          >
-            -
-          </button>
-          <span className="px-4 py-3 sm:py-2 font-medium text-gray-900 min-w-[3rem] text-center">{safeQuantity}</span>
-          <button
-            onClick={() => setQuantity(safeQuantity + 1)}
-            className="flex-1 px-4 py-3 text-gray-600 transition-colors sm:px-3 sm:py-2 hover:bg-gray-100 sm:flex-none"
-          >
-            +
-          </button>
-        </div>
+<div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
+  {/* Quantity Selector - Only show if product is in stock */}
+  {stock > 0 && (
+    <div className="flex items-center justify-center w-full border-2 border-gray-200 rounded-lg sm:justify-start sm:w-auto">
+      <button
+        onClick={() => setQuantity(Math.max(1, safeQuantity - 1))}
+        className="flex-1 px-4 py-3 text-gray-600 transition-colors sm:px-3 sm:py-2 hover:bg-gray-100 sm:flex-none"
+      >
+        -
+      </button>
+      <span className="px-4 py-3 sm:py-2 font-medium text-gray-900 min-w-[3rem] text-center">{safeQuantity}</span>
+      <button
+        onClick={() => setQuantity(safeQuantity + 1)}
+        className="flex-1 px-4 py-3 text-gray-600 transition-colors sm:px-3 sm:py-2 hover:bg-gray-100 sm:flex-none"
+      >
+        +
+      </button>
+    </div>
+  )}
 
-        {/* Add to Cart button - Full width on mobile */}
-        <button 
-          onClick={handleAddToCart}
-          disabled={stock === 0}
-          className="flex-1 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 sm:px-6 bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed sm:text-base"
-        >
-          {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-        </button>
-      </div>
+  {/* Add to Cart button - Full width on mobile */}
+  {stock > 0 ? (
+    <button 
+      onClick={handleAddToCart}
+      className="flex-1 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 sm:px-6 bg-gradient-to-r from-pink-600 to-pink-500 rounded-xl hover:from-pink-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed sm:text-base"
+    >
+      Add to Cart
+    </button>
+  ) : (
+    <button 
+      disabled
+      className="flex-1 px-4 py-3 text-sm font-semibold text-gray-500 transition-colors duration-200 bg-gray-200 cursor-not-allowed sm:px-6 rounded-xl sm:text-base"
+    >
+      Out of Stock
+    </button>
+  )}
+</div>
 
       {/* Cart Confirmation */}
       {isAddedToCart && (
